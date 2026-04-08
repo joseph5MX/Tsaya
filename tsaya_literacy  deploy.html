@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tsaya – Learn to Read & Write</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --sun: #F5A623; --earth: #2C1A0E; --leaf: #2D7D5A;
+    --leaf-light: #3DA672; --sand: #FDF6EC; --text: #1A1208;
+    --muted: #7A6652; --bubble-user: #2D7D5A; --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--sand); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  header { background: var(--earth); padding: 14px 16px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 16px rgba(0,0,0,0.2); }
+  .logo-icon { width: 42px; height: 42px; background: var(--sun); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .logo-text h1 { font-family: 'Fraunces', serif; font-size: 21px; color: #fff; line-height: 1; }
+  .logo-text span { font-size: 10px; color: var(--sun); letter-spacing: 1px; text-transform: uppercase; display: block; margin-top: 2px; }
+  .offline-badge { margin-left: auto; background: rgba(245,166,35,0.2); color: var(--sun); border: 1px solid rgba(245,166,35,0.4); border-radius: 20px; padding: 4px 10px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+  .lang-bar { background: #3d2a18; padding: 10px 16px; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+  .lang-bar::-webkit-scrollbar { display: none; }
+  .lang-btn { background: rgba(255,255,255,0.1); border: 1.5px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+  .lang-btn.active { background: var(--sun); border-color: var(--sun); color: var(--earth); }
+  .lang-btn:hover:not(.active) { background: rgba(255,255,255,0.18); color: #fff; }
+  .welcome-card { background: linear-gradient(135deg, var(--leaf) 0%, #1a5c3e 100%); margin: 16px 16px 0; border-radius: 20px; padding: 20px; color: #fff; position: relative; overflow: hidden; }
+  .welcome-card::after { content: '◆'; position: absolute; right: 14px; top: 8px; font-size: 68px; opacity: 0.06; line-height: 1; }
+  .lang-greeting-tag { display: inline-block; background: rgba(255,255,255,0.2); border-radius: 20px; padding: 3px 10px; font-size: 11px; font-weight: 600; margin-bottom: 7px; }
+  .welcome-card h2 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 4px; }
+  .welcome-card p { font-size: 13px; opacity: 0.88; line-height: 1.55; }
+  .section-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); padding: 14px 16px 8px; }
+  .pills { display: flex; gap: 7px; padding: 0 16px; overflow-x: auto; scrollbar-width: none; }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill { background: #fff; border: 2px solid transparent; border-radius: 30px; padding: 7px 13px; font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all 0.2s; color: var(--text); box-shadow: 0 1px 5px rgba(0,0,0,0.07); }
+  .pill:hover, .pill.active { border-color: var(--leaf); background: var(--leaf); color: #fff; }
+  .chat-wrapper { flex: 1; display: flex; flex-direction: column; padding: 14px 16px; gap: 12px; overflow-y: auto; max-height: 400px; min-height: 240px; }
+  .message { display: flex; align-items: flex-end; gap: 9px; animation: fadeUp 0.3s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .message.user { flex-direction: row-reverse; }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; font-weight: 700; }
+  .avatar.ai { background: var(--sun); color: var(--earth); }
+  .avatar.user-av { background: var(--leaf); color: #fff; }
+  .bubble { max-width: 80%; padding: 11px 15px; border-radius: var(--radius); font-size: 14px; line-height: 1.6; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .message.ai .bubble { background: #fff; border-bottom-left-radius: 4px; color: var(--text); border: 1px solid #e8e0d8; }
+  .message.user .bubble { background: var(--bubble-user); color: #fff; border-bottom-right-radius: 4px; }
+  .lang-tag { font-size: 10px; background: #FFF3E0; color: #E65100; padding: 2px 7px; border-radius: 8px; display: inline-block; margin-bottom: 5px; font-weight: 700; }
+  .typing { display: flex; align-items: center; gap: 5px; padding: 2px 0; }
+  .typing span { width: 6px; height: 6px; background: var(--muted); border-radius: 50%; animation: bounce 1.2s infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+  .quick-prompts { display: flex; gap: 7px; flex-wrap: wrap; padding: 0 16px 10px; }
+  .qp { background: #fff; border: 1.5px solid #ddd6cc; border-radius: 20px; padding: 5px 11px; font-size: 11px; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.18s; }
+  .qp:hover { border-color: var(--leaf); color: var(--leaf); background: #f0f9f5; }
+  .input-area { padding: 10px 16px 18px; background: var(--sand); border-top: 1px solid #e8e0d8; }
+  .input-row { display: flex; gap: 8px; background: #fff; border-radius: 30px; padding: 5px 5px 5px 14px; box-shadow: 0 2px 12px rgba(0,0,0,0.1); border: 2px solid transparent; transition: border-color 0.2s; }
+  .input-row:focus-within { border-color: var(--leaf); }
+  #userInput { flex: 1; border: none; outline: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); height: 34px; line-height: 34px; padding: 0; }
+  #userInput::placeholder { color: #b5a898; }
+  #sendBtn { width: 40px; height: 40px; background: var(--leaf); border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.1s; flex-shrink: 0; }
+  #sendBtn:hover { background: var(--leaf-light); }
+  #sendBtn:active { transform: scale(0.92); }
+  #sendBtn svg { width: 17px; height: 17px; fill: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">📖</div>
+  <div class="logo-text"><h1>Tsaya</h1><span>AI Literacy Tutor · Botswana</span></div>
+  <div class="offline-badge">⚡ OFFLINE</div>
+</header>
+
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('setswana')" id="btn-setswana">🇧🇼 Setswana</button>
+  <button class="lang-btn" onclick="setLang('kalanga')" id="btn-kalanga">🌿 TjiKalanga</button>
+  <button class="lang-btn" onclick="setLang('kgalagadi')" id="btn-kgalagadi">🏜️ Shekgalagari</button>
+  <button class="lang-btn" onclick="setLang('mbukushu')" id="btn-mbukushu">🌊 Thimbukushu</button>
+  <button class="lang-btn" onclick="setLang('english')" id="btn-english">🇬🇧 English</button>
+</div>
+
+<div class="welcome-card">
+  <div class="lang-greeting-tag" id="langTag">🇧🇼 Setswana</div>
+  <h2 id="welcomeTitle">Dumela! Welcome 👋</h2>
+  <p id="welcomeDesc">Ke morutabana wa gago. Re ithuta mmogo — go bala, go kwala, le mafoko. Ga go mathata. Re simolola!</p>
+</div>
+
+<div class="section-label">Choose a topic</div>
+<div class="pills">
+  <div class="pill active" onclick="setTopic(this,'letters')">🔤 Letters</div>
+  <div class="pill" onclick="setTopic(this,'words')">💬 Words</div>
+  <div class="pill" onclick="setTopic(this,'sentences')">📄 Sentences</div>
+  <div class="pill" onclick="setTopic(this,'numbers')">🔢 Numbers</div>
+  <div class="pill" onclick="setTopic(this,'daily')">🏠 Daily Life</div>
+  <div class="pill" onclick="setTopic(this,'writing')">✏️ Writing</div>
+</div>
+
+<div class="chat-wrapper" id="chatBox"></div>
+<div class="quick-prompts" id="quickPrompts"></div>
+
+<div class="input-area">
+  <div class="input-row">
+    <input type="text" id="userInput" placeholder="Type your message here…" onkeydown="if(event.key==='Enter') sendMessage()"/>
+    <button id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// LANGUAGE DATA
+// ═══════════════════════════════════════════
+const LANGS = {
+  setswana: {
+    tag:'🇧🇼 Setswana', greeting:'Dumela! Welcome 👋',
+    desc:'Ke morutabana wa gago. Re ithuta Setswana mmogo — go bala, go kwala, le go bua. Ga go potlako. Re simolola!',
+    firstMsg:`<div class="lang-tag">Setswana · Lesson</div>Dumela! Ke Tsaya, morutabana wa gago. 🌟<br><br>Re tla ithuta Setswana mmogo — puo ya setshaba sa Botswana!<br><br>Lefoko la ntlha:<br>👋 <b>Dumela</b> = <b>Hello / Greetings</b><br><small style="color:#7A6652">(say it: doo-MEH-la — one person)</small><br>👋 <b>Dumelang</b> = <b>Hello everyone</b><br><small style="color:#7A6652">(doo-meh-LANG — greeting a group)</small><br><br>Leka go bua: <b>Dumela!</b> — then tell me your name!`,
+    prompts:[['alphabet','Learn Letters'],['numbers','Count 1–10'],['words','Key words'],['name','Write my name']],
+    good:'Well done! (Sentle!)', great:'Excellent! (O dirile sentle thata!)', tryAgain:'Try again — you can do it! (Leka gape!)', keep:'Keep going! (Tswelela!)'
+  },
+  kalanga: {
+    tag:'🌿 TjiKalanga', greeting:'Dumilani! Welcome 👋',
+    desc:'Hello! I will teach you TjiKalanga — a beautiful language of Botswana. We learn together, slowly. No rush!',
+    firstMsg:`<div class="lang-tag">TjiKalanga · Lesson</div>Hello! I am Tsaya, your teacher. 🌟<br><br>Today we learn <b>TjiKalanga</b> — a language spoken in northeast Botswana by the Kalanga people.<br><br>Your first TjiKalanga word:<br>👋 <b>Dumilani</b> = <b>Hello / Good morning</b><br><small style="color:#7A6652">(say it: doo-mee-LAH-nee)</small><br><br>Try saying: <b>Dumilani!</b> Then tell me — what is your name?`,
+    prompts:[['alphabet','Learn Letters'],['numbers','Count 1–10'],['words','Learn Words'],['name','Write my name']],
+    good:'Well done! (Zwavhudi!)', great:'Excellent! (Zwavhudi nga maanda!)', tryAgain:'Try again — you can do it!', keep:'Keep going!'
+  },
+  kgalagadi: {
+    tag:'🏜️ Shekgalagari', greeting:'Dumela! Welcome 👋',
+    desc:'Hello! I will teach you Shekgalagari — the language of the Kgalagadi people of southwest Botswana. We learn together, slowly. No rush!',
+    firstMsg:`<div class="lang-tag">Shekgalagari · Lesson</div>Hello! I am Tsaya, your teacher. 🌟<br><br>Today we learn <b>Shekgalagari</b> — a language spoken by the Kgalagadi people in the Kalahari desert of southwest Botswana.<br><br>Your first Shekgalagari word:<br>☀️ <b>Leatjsi</b> = <b>sun / day</b><br><small style="color:#7A6652">(say it: leh-AT-see — same meaning as "letsatsi" in Setswana!)</small><br><br>Try saying: <b>Leatjsi!</b> Then tell me — what is your name?`,
+    prompts:[['alphabet','Learn Letters'],['numbers','Count 1–10'],['words','Learn Words'],['name','Write my name']],
+    good:'Well done! (Sentile!)', great:'Excellent! (Sentile thata!)', tryAgain:'Try again — you can do it!', keep:'Keep going! (Tswelela!)'
+  },
+  mbukushu: {
+    tag:'🌊 Thimbukushu', greeting:'Mbukuuru! Welcome 👋',
+    desc:'Hello! I will teach you Thimbukushu — a language of the Okavango Delta in Botswana. We learn together, slowly. No rush!',
+    firstMsg:`<div class="lang-tag">Thimbukushu · Lesson</div>Hello! I am Tsaya, your teacher. 🌟<br><br>Today we learn <b>Thimbukushu</b> — a language spoken by the Mbukushu people of the Okavango Delta in Botswana.<br><br>Your first Thimbukushu word:<br>☀️ <b>Diyuwa</b> = <b>sun</b><br><small style="color:#7A6652">(say it: dee-YOO-wa)</small><br><br>Try saying: <b>Diyuwa!</b> Then tell me — what is your name?`,
+    prompts:[['alphabet','Learn Letters'],['numbers','Count 1–10'],['words','Learn Words'],['name','Write my name']],
+    good:'Well done! (Nawa!)', great:'Excellent work!', tryAgain:'Try again — you can do it!', keep:'Keep going!'
+  },
+  english: {
+    tag:'🇬🇧 English', greeting:'Hello! Welcome 👋',
+    desc:'I am your friendly teacher. We learn English together — reading, writing, and everyday words. No rush. No judgment. Just learning!',
+    firstMsg:`<div class="lang-tag">English · Lesson</div>Hello! I am Tsaya, your learning helper. 🌟<br><br>Today we learn <b>English</b> — the official language of Botswana, used in schools, workplaces, shops and clinics.<br><br>Your first English word:<br>👋 <b>Hello</b> = a greeting when you meet someone<br><small style="color:#7A6652">(say it: HEH-lo)</small><br><br>Try saying: <b>Hello!</b> Then tell me — what is your name?`,
+    prompts:[['alphabet','Learn Letters'],['numbers','Count 1–10'],['words','Key words'],['name','Write my name']],
+    good:'Well done!', great:'Excellent work! Keep it up!', tryAgain:'Try again — you can do it!', keep:'Keep going!'
+  }
+};
+
+// ═══════════════════════════════════════════
+// BUILT-IN LESSON CONTENT (offline AI brain)
+// ═══════════════════════════════════════════
+const LESSONS = {
+
+  // ─── ALPHABET ───
+  alphabet: {
+    setswana: [
+      `<div class="lang-tag">Setswana · Letters A–D</div>Re simolola ka ditlhaka tsa Setswana! 🔤<br><br>Tlhaka nngwe le nngwe e na le lefoko la Setswana:<br><br><b>A</b> — <b>Ame</b> = <i>water (old form) / Metsi</i> <small style="color:#7A6652">(AH-meh)</small><br><b>B</b> — <b>Bogobe</b> = <i>porridge</i> <small style="color:#7A6652">(bo-GOH-beh) — national food of Botswana!</small><br><b>B</b> — <b>Bua</b> = <i>speak / talk</i> <small style="color:#7A6652">(BOO-ah) — "Bua Setswana!" = Speak Setswana!</small><br><b>D</b> — <b>Dumela</b> = <i>hello / greetings</i> <small style="color:#7A6652">(doo-MEH-la) — most important word!</small><br><br>Bua ditlhaka tse: A… B… D…<br>Ke tlhaka efe e simolola leina la gago?`,
+      `<div class="lang-tag">Setswana · Letters G–L</div>Sentle! 🌟 Re tswelela:<br><br><b>G</b> — <b>Gaborone</b> = <i>capital city of Botswana</i> <small style="color:#7A6652">(ga-bo-ROH-neh)</small><br><b>I</b> — <b>Ithuta</b> = <i>to learn / study</i> <small style="color:#7A6652">(ee-THOO-ta) — what you are doing right now!</small><br><b>K</b> — <b>Kwala</b> = <i>to write</i> <small style="color:#7A6652">(KWA-la) — "Ke batla go kwala" = I want to write</small><br><b>L</b> — <b>Leina</b> = <i>name</i> <small style="color:#7A6652">(LEH-ee-na) — "Leina la me ke ___" = My name is ___</small><br><br>Leka go bua: G… I… K… L…<br>O ithuta (you are learning) Setswana — sentle thata! 🌟`,
+      `<div class="lang-tag">Setswana · Letters M–P</div>O dirile sentle thata! 🎉<br><br><b>M</b> — <b>Metsi</b> = <i>water</i> <small style="color:#7A6652">(MET-see) — "Ke batla metsi" = I want water</small><br><b>M</b> — <b>Mma</b> = <i>ma'am / mother</i> <small style="color:#7A6652">(mm-AH) — used to greet women respectfully</small><br><b>N</b> — <b>Ngaka</b> = <i>doctor</i> <small style="color:#7A6652">(ng-AH-ka)</small><br><b>N</b> — <b>Ntlo</b> = <i>house</i> <small style="color:#7A6652">(nn-TLO)</small><br><b>P</b> — <b>Pula</b> = <i>rain / money / cheers!</i> <small style="color:#7A6652">(POO-la) — motto of Botswana!</small><br><br>Pula is the national motto AND the currency. It means "let there be rain." 🌧️`,
+      `<div class="lang-tag">Setswana · Letters R–T</div>Tswelela! 🌟 More letters:<br><br><b>R</b> — <b>Rra</b> = <i>sir / father</i> <small style="color:#7A6652">(rr-AH) — used to greet men respectfully</small><br><b>S</b> — <b>Sekolo</b> = <i>school</i> <small style="color:#7A6652">(seh-KOH-lo)</small><br><b>S</b> — <b>Sentle</b> = <i>well / good / nicely</i> <small style="color:#7A6652">(SEN-tleh) — "O tsogile sentle?" = Did you wake up well?</small><br><b>T</b> — <b>Tsamaya</b> = <i>go / travel</i> <small style="color:#7A6652">(tsa-MAH-ya) — "Tsamaya sentle" = Go well (goodbye)</small><br><br>Say them: R… S… T…<br>Now you know how to say hello AND goodbye in Setswana! 🎉`
+    ],
+    kalanga: [
+      `<div class="lang-tag">TjiKalanga · Letters A–D</div>Let's learn TjiKalanga letters! 🔤<br><br>TjiKalanga uses the same A–Z alphabet as English. Each letter below has a real TjiKalanga word from the dictionary:<br><br><b>A</b> — <b>Adzima</b> = <i>to lend / to borrow</i> <small style="color:#7A6652">(a-DZEE-ma)</small><br><b>B</b> — <b>Bana</b> = <i>children</i> <small style="color:#7A6652">(BAH-na)</small><br><b>C</b> — <b>Chedza</b> = <i>light</i> <small style="color:#7A6652">(CHEH-dza)</small><br><b>D</b> — <b>Dombo</b> = <i>mountain / hill</i> <small style="color:#7A6652">(DOM-bo)</small><br><br>Say each letter: A… B… C… D…<br>Which letter starts YOUR name?`,
+      `<div class="lang-tag">TjiKalanga · Letters E–H</div>Well done! 🌟 Letters E to H:<br><br><b>E</b> — <b>Enda</b> = <i>to go / go away</i> <small style="color:#7A6652">(EN-da)</small><br><b>F</b> — <b>Fema</b> = <i>to breathe</i> <small style="color:#7A6652">(FEH-ma)</small><br><b>G</b> — <b>Gala</b> = <i>to sit / to live somewhere</i> <small style="color:#7A6652">(GAH-la)</small><br><b>H</b> — <b>Hobe</b> = <i>fish</i> <small style="color:#7A6652">(HOH-beh)</small><br><br>Say them: E… F… G… H…<br>Which word means "to breathe"? (hint: starts with F!)`,
+      `<div class="lang-tag">TjiKalanga · Letters I–N</div>Excellent! 🎉 Letters I to N:<br><br><b>I</b> — <b>Ita</b> = <i>to do / to make</i> <small style="color:#7A6652">(EE-ta)</small><br><b>J</b> — <b>Ja</b> = <i>to eat</i> <small style="color:#7A6652">(jah)</small><br><b>K</b> — <b>Kwala</b> = <i>to write</i> <small style="color:#7A6652">(KWA-la)</small><br><b>L</b> — <b>Leba</b> = <i>to talk / speak</i> <small style="color:#7A6652">(LEH-ba)</small><br><b>M</b> — <b>Moto</b> = <i>fire / heat</i> <small style="color:#7A6652">(MOH-to)</small><br><b>N</b> — <b>Ngano</b> = <i>folk tales / stories</i> <small style="color:#7A6652">(ng-AH-no)</small><br><br>Right now you are doing <b>Ita</b> (doing/making) great work!`,
+      `<div class="lang-tag">TjiKalanga · Letters P–Z</div>Final letters! 🌟 P to Z:<br><br><b>P</b> — <b>Penga</b> = <i>to go mad / be crazy</i> <small style="color:#7A6652">(fun word! PEN-ga)</small><br><b>S</b> — <b>Shango</b> = <i>country / the world</i> <small style="color:#7A6652">(SHAN-go)</small><br><b>T</b> — <b>Tenda</b> = <i>to thank</i> <small style="color:#7A6652">(TEN-da)</small><br><b>V</b> — <b>Vula</b> = <i>water / rain</i> 💧 <small style="color:#7A6652">(VOO-la)</small><br><b>W</b> — <b>Woma</b> = <i>to dry</i> <small style="color:#7A6652">(WOH-ma)</small><br><b>Z</b> — <b>Zina</b> = <i>name</i> <small style="color:#7A6652">(ZEE-na)</small><br><br>You now know TjiKalanga words for every letter! 🎉 Which was your favourite?`
+    ],
+    kgalagadi: [
+      `<div class="lang-tag">Shekgalagari · Letters A–M</div>Let's learn Shekgalagari letters! 🔤<br><br>Shekgalagari uses the same A–Z alphabet. Each letter has a real Shekgalagari word:<br><br><b>I</b> — <b>Itu</b> = <i>house</i> <small style="color:#7A6652">(EE-too) — Setswana: ntlo</small><br><b>K</b> — <b>Kgalariyame</b> = <i>my brother / sister</i> <small style="color:#7A6652">(ka-la-REE-ya-meh)</small><br><b>L</b> — <b>Leatjsi</b> = <i>sun / day</i> <small style="color:#7A6652">(leh-AT-see) — Setswana: letsatsi</small><br><b>M</b> — <b>Maze</b> = <i>water</i> <small style="color:#7A6652">(MAH-zeh) — Setswana: metsi</small><br><b>M</b> — <b>Morimo</b> = <i>God</i> <small style="color:#7A6652">(mo-REE-mo) — same as Setswana!</small><br><br>Say each letter: I… K… L… M…<br>Which letter starts YOUR name?`,
+      `<div class="lang-tag">Shekgalagari · Letters M–R</div>Well done! 🌟 More Shekgalagari letters:<br><br><b>M</b> — <b>Mantjsana</b> = <i>boy</i> <small style="color:#7A6652">(man-TCHA-na) — Setswana: mosimane</small><br><b>M</b> — <b>Moriso</b> = <i>milk</i> <small style="color:#7A6652">(mo-REE-so) — Setswana: mashi</small><br><b>M</b> — <b>Mosezana</b> = <i>girl</i> <small style="color:#7A6652">(mo-seh-ZAH-na) — Setswana: mosetsana</small><br><b>M</b> — <b>Moqho</b> = <i>person</i> <small style="color:#7A6652">(MO-qo) — Setswana: motho</small><br><b>M</b> — <b>Motjhwana</b> = <i>child</i> <small style="color:#7A6652">(mo-TCHWAH-na) — Setswana: ngwana</small><br><br>Notice how many Shekgalagari words start with M? Very common in Bantu languages!`,
+      `<div class="lang-tag">Shekgalagari · Letters R–U</div>Excellent! 🎉 More letters:<br><br><b>R</b> — <b>Rimho / Rikgomo</b> = <i>cattle / cows</i> <small style="color:#7A6652">(REE-mo) — Setswana: dikgomo</small><br><b>R</b> — <b>Rula</b> = <i>sit down!</i> <small style="color:#7A6652">(ROO-la) — Setswana: nna</small><br><b>S</b> — <b>Shekole</b> = <i>school</i> <small style="color:#7A6652">(sheh-KOH-leh) — Setswana: sekolo</small><br><b>U</b> — <b>Uzwa</b> = <i>hear / listen</i> <small style="color:#7A6652">(OO-zwa) — Setswana: utlwa</small><br><br>Say them: R… S… U…<br>Can you hear the connection between Shekgalagari and Setswana?`
+    ],
+    mbukushu: [
+      `<div class="lang-tag">Thimbukushu · Letters A–D</div>Let's learn Thimbukushu letters! 🔤<br><br>Thimbukushu uses the same A–Z alphabet. Each letter has a real verified word:<br><br><b>A</b> — <b>Ame</b> = <i>I / me</i> <small style="color:#7A6652">(AH-meh) — e.g. "Ame kughamba Thimbukushu" = I speak Thimbukushu</small><br><b>A</b> — <b>Aye</b> = <i>he / she</i> <small style="color:#7A6652">(AH-yeh) — e.g. "Aye kuna kuhonga" = He/she is teaching</small><br><b>D</b> — <b>Diyuwa</b> = <i>sun</i> <small style="color:#7A6652">(dee-YOO-wa)</small><br><b>D</b> — <b>Dyaro</b> = <i>today</i> <small style="color:#7A6652">(DYA-ro) — e.g. "Dyaro ne mepo" = Today it's cold</small><br><br>Say each letter: A… D…<br>Which letter starts YOUR name?`,
+      `<div class="lang-tag">Thimbukushu · Letters G–M</div>Well done! 🌟 More Thimbukushu letters:<br><br><b>G</b> — <b>Ghuva</b> = <i>lazy</i> <small style="color:#7A6652">(GHOO-va) — "Mbadi kukaranga ghuva" = Don't be lazy!</small><br><b>H</b> — <b>Hanu</b> = <i>people</i> <small style="color:#7A6652">(HAH-noo) — "Hanu hahaka mandimi" = People like languages</small><br><b>K</b> — <b>Kamwe</b> = <i>mosquito</i> <small style="color:#7A6652">(KAM-weh)</small><br><b>K</b> — <b>Kutoya</b> = <i>reading</i> <small style="color:#7A6652">(koo-TOY-a) — "Ame na haka kutoya" = I like reading</small><br><b>M</b> — <b>Maranga</b> = <i>late</i> <small style="color:#7A6652">(ma-RAN-ga)</small><br><b>M</b> — <b>Mushere</b> = <i>friend</i> <small style="color:#7A6652">(moo-SHEH-reh)</small><br><br>Right now you are doing <b>Kutoya</b> (reading)! Well done!`,
+      `<div class="lang-tag">Thimbukushu · Letters N–W</div>Excellent! 🎉 Final Thimbukushu letters:<br><br><b>N</b> — <b>Na shana</b> = <i>I want</i> <small style="color:#7A6652">(na SHA-na) — "Na shana kudimuka" = I want to know</small><br><b>O</b> — <b>Owe</b> = <i>you</i> <small style="color:#7A6652">(OH-weh) — "Owe wa dimuka kughamba Thimbukushu" = You know how to speak Thimbukushu</small><br><b>R</b> — <b>Rudimi</b> = <i>tongue</i> <small style="color:#7A6652">(roo-DEE-mee)</small><br><b>T</b> — <b>Thiraro</b> = <i>peace</i> <small style="color:#7A6652">(thee-RAH-ro) — "Thiraro ne tha reta makukwatathano" = Peace brings collaboration</small><br><b>T</b> — <b>Tjire</b> = <i>run</i> <small style="color:#7A6652">(TJEE-reh)</small><br><b>W</b> — <b>Wiye</b> = <i>come</i> <small style="color:#7A6652">(WEE-yeh) — "Wiye kudimbo" = Come home</small><br><br>You now know Thimbukushu words for many letters! Which was your favourite?`
+    ],
+    english: [
+      `<div class="lang-tag">English · Letters A–F</div>Let's learn the English alphabet! 🔤<br><br>Each letter comes with a word you know and a word used in Botswana:<br><br><b>A</b> — <b>Apple</b> 🍎 / <b>Africa</b> 🌍<br><b>B</b> — <b>Bread</b> 🍞 / <b>Botswana</b> 🇧🇼<br><b>C</b> — <b>Clinic</b> 🏥 / <b>Children</b> 👶<br><b>D</b> — <b>Doctor</b> 👨‍⚕️ / <b>Door</b> 🚪<br><b>E</b> — <b>Egg</b> 🥚 / <b>English</b> 📖<br><b>F</b> — <b>Food</b> 🍽️ / <b>Farm</b> 🌾<br><br>Say each letter: A… B… C… D… E… F…<br>Which letter starts YOUR name?`,
+      `<div class="lang-tag">English · Letters G–L</div>Well done! 🌟 Letters G to L:<br><br><b>G</b> — <b>Goat</b> 🐐 / <b>Gaborone</b> 🏙️<br><b>H</b> — <b>House</b> 🏠 / <b>Hospital</b> 🏥<br><b>I</b> — <b>Iron</b> 🔩 / <b>Important</b> ⭐<br><b>J</b> — <b>Job</b> 💼 / <b>Journey</b> 🚶<br><b>K</b> — <b>Knife</b> 🔪 / <b>Kalahari</b> 🏜️<br><b>L</b> — <b>Learn</b> 📚 / <b>Language</b> 🗣️<br><br>Say them: G… H… I… J… K… L…<br>Can you think of YOUR own word for any of these letters?`,
+      `<div class="lang-tag">English · Letters M–R</div>Excellent! 🎉 Letters M to R:<br><br><b>M</b> — <b>Money</b> 💰 / <b>Market</b> 🛒<br><b>N</b> — <b>Name</b> 🏷️ / <b>Number</b> 🔢<br><b>O</b> — <b>Orange</b> 🍊 / <b>Office</b> 🏢<br><b>P</b> — <b>Paper</b> 📄 / <b>Pen</b> ✏️<br><b>Q</b> — <b>Queue</b> 🧍 / <b>Question</b> ❓<br><b>R</b> — <b>Read</b> 📖 / <b>Receipt</b> 🧾<br><br>These words are used every day in shops, offices and schools!`,
+      `<div class="lang-tag">English · Letters S–Z</div>Final letters! 🌟 S to Z:<br><br><b>S</b> — <b>School</b> 🏫 / <b>Sign</b> ✍️<br><b>T</b> — <b>Teacher</b> 👩‍🏫 / <b>Time</b> ⏰<br><b>U</b> — <b>Understand</b> 💡 / <b>Useful</b> 🔧<br><b>V</b> — <b>Village</b> 🏘️ / <b>Vote</b> 🗳️<br><b>W</b> — <b>Water</b> 💧 / <b>Write</b> ✍️<br><b>X Y Z</b> — <b>X-ray</b> / <b>Year</b> / <b>Zero</b><br><br>You now know all 26 letters of the English alphabet! 🎉<br>Which letter appears most in YOUR name?`
+    ]
+  },
+
+  // ─── NUMBERS ───
+  numbers: {
+    setswana: [
+      `<div class="lang-tag">Setswana · Numbers 1–5</div>Re ithute go bala! 🔢<br><br>Nomoro → Setswana → go bua jang:<br><br><b>1</b> → <b>Nngwe</b> <small style="color:#7A6652">(nn-GWEH)</small> = one<br><b>2</b> → <b>Pedi</b> <small style="color:#7A6652">(PEH-dee)</small> = two<br><b>3</b> → <b>Tharo</b> <small style="color:#7A6652">(TAH-ro)</small> = three<br><b>4</b> → <b>Nne</b> <small style="color:#7A6652">(nn-EH)</small> = four<br><b>5</b> → <b>Tlhano</b> <small style="color:#7A6652">(tl-HAH-no)</small> = five<br><br>Bala mmogo le nna: Nngwe… Pedi… Tharo… Nne… Tlhano…<br>Pula e le kae mo phakeng ya gago? (How much money in your pocket? 😄)`,
+      `<div class="lang-tag">Setswana · Numbers 6–10</div>Sentle! 🌟 Re tswelele:<br><br><b>6</b> → <b>Thataro</b> <small style="color:#7A6652">(tha-TAH-ro)</small> = six<br><b>7</b> → <b>Supa</b> <small style="color:#7A6652">(SOO-pa)</small> = seven<br><b>8</b> → <b>Robedi</b> <small style="color:#7A6652">(ro-BEH-dee)</small> = eight<br><b>9</b> → <b>Robongwe</b> <small style="color:#7A6652">(ro-BON-gweh)</small> = nine<br><b>10</b> → <b>Lesome</b> <small style="color:#7A6652">(leh-SOH-meh)</small> = ten<br><br>O feditse! 🎉 Leka go bala go tswa go 1 go ya go 10!<br>O na le dilemo di le kae? (How old are you? Say it!)`,
+      `<div class="lang-tag">Setswana · Numbers 11–20</div>Sentle thata! 🎉 Nomoro tse dingwe:<br><br>Mo Setswaneng, re kopanya <b>Lesome</b> (10) le nomoro e nnye:<br><br><b>11</b> → <b>Lesome le nngwe</b> = ten and one<br><b>12</b> → <b>Lesome le pedi</b> = ten and two<br><b>15</b> → <b>Lesome le tlhano</b> = ten and five<br><b>20</b> → <b>Masome a mabedi</b> <small style="color:#7A6652">(ma-SOH-meh ah ma-BEH-dee)</small> = twenty<br><br>Pattern: <b>Lesome</b> + <b>le</b> (and) + the small number!`,
+      `<div class="lang-tag">Setswana · Numbers 21–30</div>Tswelela! 🌟 Nomoro 21–30:<br><br><b>21</b> → <b>Masome a mabedi le nngwe</b> = twenty one<br><b>25</b> → <b>Masome a mabedi le tlhano</b> = twenty five<br><b>30</b> → <b>Masome a mararo</b> <small style="color:#7A6652">(ma-SOH-meh ah ma-RAH-ro)</small> = thirty<br><br>O na le dilemo di le kae? Leka go bua nomoro ya dilemo tsa gago mo Setswaneng! 🎉<br>O dira sentle thata!`
+    ],
+    kalanga: [
+      `<div class="lang-tag">TjiKalanga · Numbers 1–5</div>Let's count in TjiKalanga! 🔢<br><br>Number → TjiKalanga → how to say it:<br><br><b>1</b> → <b>N'ompela</b> <small style="color:#7A6652">(nn-OM-peh-la)</small> = one<br><b>2</b> → <b>Mbili</b> <small style="color:#7A6652">(mm-BEE-lee)</small> = two<br><b>3</b> → <b>Thatu</b> <small style="color:#7A6652">(TAH-too)</small> = three<br><b>4</b> → <b>Nna</b> <small style="color:#7A6652">(NNA)</small> = four<br><b>5</b> → <b>Shanu</b> <small style="color:#7A6652">(SHA-noo)</small> = five<br><br>Say them out loud: N'ompela… Mbili… Thatu… Nna… Shanu…<br>How many fingers on one hand? Say it in TjiKalanga!`,
+      `<div class="lang-tag">TjiKalanga · Numbers 6–10</div>Well done! 🌟 Keep counting:<br><br><b>6</b> → <b>Tanatu</b> <small style="color:#7A6652">(ta-NAH-too)</small> = six<br><b>7</b> → <b>Nomwe</b> <small style="color:#7A6652">(NOM-weh)</small> = seven<br><b>8</b> → <b>Robedi</b> <small style="color:#7A6652">(ro-BEH-dee)</small> = eight<br><b>9</b> → <b>Pfumbamwe</b> <small style="color:#7A6652">(pfoom-BAM-weh)</small> = nine<br><b>10</b> → <b>Gumi</b> <small style="color:#7A6652">(GOO-mee)</small> = ten<br><br>You now know 1–10! 🎉 Try counting backwards: Gumi… Pfumbamwe… Robedi…`,
+      `<div class="lang-tag">TjiKalanga · Numbers 11–15</div>Excellent! 🎉 Now let's go further:<br><br>In TjiKalanga, numbers above 10 are built by combining <b>Gumi</b> (10) + the smaller number:<br><br><b>11</b> → <b>Gumi N'ompela</b> = ten and one<br><b>12</b> → <b>Gumi Mbili</b> = ten and two<br><b>13</b> → <b>Gumi Thatu</b> = ten and three<br><b>14</b> → <b>Gumi Nna</b> = ten and four<br><b>15</b> → <b>Gumi Shanu</b> = ten and five<br><br>See the pattern? Just say <b>Gumi</b> + the number you already know!`,
+      `<div class="lang-tag">TjiKalanga · Numbers 16–20</div>You are doing great! 🌟 Continuing:<br><br><b>16</b> → <b>Gumi Tanatu</b> = ten and six<br><b>17</b> → <b>Gumi Nomwe</b> = ten and seven<br><b>18</b> → <b>Gumi Robedi</b> = ten and eight<br><b>19</b> → <b>Gumi Pfumbamwe</b> = ten and nine<br><b>20</b> → <b>Makumi Mbili</b> <small style="color:#7A6652">(ma-KOO-mee MM-bee-lee)</small> = twenty (two tens)<br><br>Practice tip: <b>Makumi</b> means "groups of ten". So 20 = two groups of ten!`,
+      `<div class="lang-tag">TjiKalanga · Numbers 21–25</div>Almost there! 🌟 Numbers 21 to 25:<br><br><b>21</b> → <b>Makumi Mbili N'ompela</b> = twenty one<br><b>22</b> → <b>Makumi Mbili Mbili</b> = twenty two<br><b>23</b> → <b>Makumi Mbili Thatu</b> = twenty three<br><b>24</b> → <b>Makumi Mbili Nna</b> = twenty four<br><b>25</b> → <b>Makumi Mbili Shanu</b> = twenty five<br><br>The pattern is always: <b>Makumi Mbili</b> (20) + the small number.<br>How old are you? Can you say your age in TjiKalanga?`,
+      `<div class="lang-tag">TjiKalanga · Numbers 26–30</div>Final stretch! 🎉 Numbers 26 to 30:<br><br><b>26</b> → <b>Makumi Mbili Tanatu</b> = twenty six<br><b>27</b> → <b>Makumi Mbili Nomwe</b> = twenty seven<br><b>28</b> → <b>Makumi Mbili Robedi</b> = twenty eight<br><b>29</b> → <b>Makumi Mbili Pfumbamwe</b> = twenty nine<br><b>30</b> → <b>Makumi Thatu</b> <small style="color:#7A6652">(ma-KOO-mee TAH-too)</small> = thirty<br><br>You now count to 30 in TjiKalanga! 🏆<br>That is <b>Makumi Thatu</b> — well done!`
+    ],
+    kgalagadi: [
+      `<div class="lang-tag">Shekgalagari · Numbers 1–5</div>Let's count in Shekgalagari! 🔢<br><br>Shekgalagari numbers are very similar to Setswana — you may already know some!<br><br><b>1</b> → <b>Nngwe</b> <small style="color:#7A6652">(nn-GWEH)</small> = one<br><b>2</b> → <b>Pedi</b> <small style="color:#7A6652">(PEH-dee)</small> = two<br><b>3</b> → <b>Tharo</b> <small style="color:#7A6652">(TAH-ro)</small> = three<br><b>4</b> → <b>Nne</b> <small style="color:#7A6652">(nn-EH)</small> = four<br><b>5</b> → <b>Tlhano</b> <small style="color:#7A6652">(tl-HAH-no)</small> = five<br><br>Say them: Nngwe… Pedi… Tharo… Nne… Tlhano…<br>How many people are in your family?`,
+      `<div class="lang-tag">Shekgalagari · Numbers 6–10</div>Well done! 🌟 Keep counting:<br><br><b>6</b> → <b>Thataro</b> <small style="color:#7A6652">(tha-TAH-ro)</small> = six<br><b>7</b> → <b>Supa</b> <small style="color:#7A6652">(SOO-pa)</small> = seven<br><b>8</b> → <b>Robedi</b> <small style="color:#7A6652">(ro-BEH-dee)</small> = eight<br><b>9</b> → <b>Robongwe</b> <small style="color:#7A6652">(ro-BON-gweh)</small> = nine<br><b>10</b> → <b>Lesome</b> <small style="color:#7A6652">(leh-SOH-meh)</small> = ten<br><br>You know 1–10 in Shekgalagari! 🎉<br>Try counting backwards: Lesome… Robongwe… Robedi…`,
+      `<div class="lang-tag">Shekgalagari · Numbers 11–20</div>Excellent! 🎉 Numbers 11–20:<br><br>In Shekgalagari, we build numbers the same way as Setswana — <b>Lesome</b> (10) + the small number:<br><br><b>11</b> → <b>Lesome le nngwe</b> = ten and one<br><b>12</b> → <b>Lesome le pedi</b> = ten and two<br><b>15</b> → <b>Lesome le tlhano</b> = ten and five<br><b>20</b> → <b>Masome a mabedi</b> <small style="color:#7A6652">(ma-SOH-meh ah ma-BEH-dee)</small> = twenty<br><br><b>Masome</b> means "groups of ten" — 20 = two groups of ten!`,
+      `<div class="lang-tag">Shekgalagari · Numbers 21–30</div>Almost there! 🌟 Numbers 21–30:<br><br><b>21</b> → <b>Masome a mabedi le nngwe</b> = twenty one<br><b>22</b> → <b>Masome a mabedi le pedi</b> = twenty two<br><b>25</b> → <b>Masome a mabedi le tlhano</b> = twenty five<br><b>30</b> → <b>Masome a mararo</b> <small style="color:#7A6652">(ma-SOH-meh ah ma-RAH-ro)</small> = thirty<br><br>Pattern: <b>Masome a mabedi</b> (20) + <b>le</b> (and) + the small number.<br>How old are you? Say your age in Shekgalagari! 🎉`
+    ],
+    mbukushu: [
+      `<div class="lang-tag">Thimbukushu · Numbers 1–5</div>Let's count in Thimbukushu! 🔢<br><br>Number → Thimbukushu word → how to say it:<br><br><b>1</b> → <b>Kamwe</b> <small style="color:#7A6652">(KAM-weh)</small> = one<br><b>2</b> → <b>Mbali</b> <small style="color:#7A6652">(mm-BAH-lee)</small> = two<br><b>3</b> → <b>Tatu</b> <small style="color:#7A6652">(TAH-too)</small> = three<br><b>4</b> → <b>Ina</b> <small style="color:#7A6652">(EE-na)</small> = four<br><b>5</b> → <b>Itano</b> <small style="color:#7A6652">(ee-TAH-no)</small> = five<br><br>Say them out loud: Kamwe… Mbali… Tatu… Ina… Itano…<br>How many people are in your home? Say it in Thimbukushu!`,
+      `<div class="lang-tag">Thimbukushu · Numbers 6–10</div>Well done! 🌟 Keep counting:<br><br><b>6</b> → <b>Itanhatu</b> <small style="color:#7A6652">(ee-tan-HAH-too)</small> = six<br><b>7</b> → <b>Nomwe</b> <small style="color:#7A6652">(NOM-weh)</small> = seven<br><b>8</b> → <b>Isere</b> <small style="color:#7A6652">(ee-SEH-reh)</small> = eight<br><b>9</b> → <b>Ipfumbamwe</b> <small style="color:#7A6652">(ee-pfoom-BAM-weh)</small> = nine<br><b>10</b> → <b>Likumi</b> <small style="color:#7A6652">(lee-KOO-mee)</small> = ten<br><br>You know 1–10 in Thimbukushu! 🎉<br>Try counting backwards: Likumi… Ipfumbamwe… Isere…`,
+      `<div class="lang-tag">Thimbukushu · Numbers 11–20</div>Excellent! 🎉 Numbers 11–20:<br><br>In Thimbukushu, numbers above 10 combine <b>Likumi</b> (10) with the smaller number:<br><br><b>11</b> → <b>Likumi na Kamwe</b> = ten and one<br><b>12</b> → <b>Likumi na Mbali</b> = ten and two<br><b>15</b> → <b>Likumi na Itano</b> = ten and five<br><b>20</b> → <b>Makumi Mabali</b> <small style="color:#7A6652">(ma-KOO-mee ma-BAH-lee)</small> = twenty (two tens)<br><br>See the pattern? <b>Likumi</b> (10) + <b>na</b> (and) + the small number you already know!`,
+      `<div class="lang-tag">Thimbukushu · Numbers 21–30</div>Almost there! 🌟 Numbers 21–30:<br><br><b>21</b> → <b>Makumi Mabali na Kamwe</b> = twenty one<br><b>22</b> → <b>Makumi Mabali na Mbali</b> = twenty two<br><b>25</b> → <b>Makumi Mabali na Itano</b> = twenty five<br><b>30</b> → <b>Makumi Matatu</b> <small style="color:#7A6652">(ma-KOO-mee ma-TAH-too)</small> = thirty<br><br>The pattern: <b>Makumi Mabali</b> (20) + <b>na</b> (and) + small number.<br>How old are you? Can you say your age in Thimbukushu? 🎉`
+    ],
+    english: [
+      `<div class="lang-tag">English · Numbers 1–5</div>Let's learn to count in English! 🔢<br><br>Number → English word → how to say it:<br><br><b>1</b> → <b>One</b> <small style="color:#7A6652">(WUN)</small><br><b>2</b> → <b>Two</b> <small style="color:#7A6652">(TOO)</small><br><b>3</b> → <b>Three</b> <small style="color:#7A6652">(THREE)</small><br><b>4</b> → <b>Four</b> <small style="color:#7A6652">(FOR)</small><br><b>5</b> → <b>Five</b> <small style="color:#7A6652">(FIYVE)</small><br><br>Count with me: One… Two… Three… Four… Five…<br>How many fingers on one hand? Say it in English!`,
+      `<div class="lang-tag">English · Numbers 6–10</div>Well done! 🌟 Keep counting:<br><br><b>6</b> → <b>Six</b> <small style="color:#7A6652">(SIKS)</small><br><b>7</b> → <b>Seven</b> <small style="color:#7A6652">(SEV-en)</small><br><b>8</b> → <b>Eight</b> <small style="color:#7A6652">(AYT — the GH is silent!)</small><br><b>9</b> → <b>Nine</b> <small style="color:#7A6652">(NIYN)</small><br><b>10</b> → <b>Ten</b> <small style="color:#7A6652">(TEN)</small><br><br>You know 1–10 in English! 🎉<br>How old are you? Write your age as a number, then say it!`,
+      `<div class="lang-tag">English · Numbers 11–20</div>Excellent! 🎉 Numbers 11–20:<br><br><b>11</b> → <b>Eleven</b> <small style="color:#7A6652">(ee-LEV-en)</small><br><b>12</b> → <b>Twelve</b> <small style="color:#7A6652">(TWELV)</small><br><b>13</b> → <b>Thirteen</b> <small style="color:#7A6652">(thir-TEEN)</small><br><b>15</b> → <b>Fifteen</b> <small style="color:#7A6652">(fif-TEEN)</small><br><b>20</b> → <b>Twenty</b> <small style="color:#7A6652">(TWEN-tee)</small><br><br>Notice: 13–19 all end in <b>-teen</b>! That makes them easier to remember.<br>Thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen!`,
+      `<div class="lang-tag">English · Numbers 21–30</div>Almost there! 🌟 Numbers 21–30:<br><br><b>21</b> → <b>Twenty-one</b><br><b>22</b> → <b>Twenty-two</b><br><b>25</b> → <b>Twenty-five</b><br><b>30</b> → <b>Thirty</b> <small style="color:#7A6652">(THIR-tee)</small><br><br>Pattern: <b>Twenty</b> + the small number (one, two, three…)<br>Just like in Setswana! <b>Masome a mabedi le nngwe</b> = Twenty-one<br><br>How old are you? Can you say it in English AND in Setswana? 🎉`
+    ]
+  },
+
+  // ─── WORDS ───
+  words: {
+    setswana: [
+      `<div class="lang-tag">Setswana · Words — Essentials</div>Mafoko a botlhokwa a Setswana! 💬<br><br>💧 <b>Metsi</b> = <b>water</b> <small style="color:#7A6652">(MET-see) — "Ke batla metsi" = I want water</small><br>🍽️ <b>Dijo</b> = <b>food</b> <small style="color:#7A6652">(DEE-jo)</small><br>🍲 <b>Bogobe</b> = <b>porridge</b> <small style="color:#7A6652">(bo-GOH-beh) — traditional Botswana food!</small><br>🏠 <b>Ntlo</b> = <b>house</b> <small style="color:#7A6652">(nn-TLO)</small><br>💰 <b>Pula</b> = <b>rain / money / cheers</b> <small style="color:#7A6652">(POO-la) — also the national motto!</small><br><br>Leka go bua lefoko lengwe lengwe. Which word do you use every day?`,
+      `<div class="lang-tag">Setswana · Words — People & Places</div>Mafoko a batho le mafelo! 💬<br><br>👨‍👩‍👧 <b>Bana</b> = <b>children</b> <small style="color:#7A6652">(BAH-na)</small><br>🧑 <b>Motho</b> = <b>person</b> <small style="color:#7A6652">(MOH-tho)</small><br>👨 <b>Monna</b> = <b>man</b> <small style="color:#7A6652">(MON-na)</small><br>👩 <b>Mosadi</b> = <b>woman</b> <small style="color:#7A6652">(mo-SAH-dee)</small><br>🏙️ <b>Gaborone</b> = <b>capital city of Botswana</b> <small style="color:#7A6652">(ga-bo-ROH-neh)</small><br><br>Gaborone ke motse o mogolo wa Botswana — do you know someone who lives there?`,
+      `<div class="lang-tag">Setswana · Words — Actions (from the PDF guide)</div>Mafoko a go dira! 💬<br><br>🗣️ <b>Bua</b> = <b>speak / talk</b> <small style="color:#7A6652">(BOO-ah) — "Ke bua Setswana" = I speak Setswana</small><br>📖 <b>Bala</b> = <b>read / count</b> <small style="color:#7A6652">(BAH-la) — "Ke bala buka" = I am reading a book</small><br>✍️ <b>Kwala</b> = <b>write</b> <small style="color:#7A6652">(KWA-la) — "Ke batla go kwala" = I want to write</small><br>🎓 <b>Ithuta</b> = <b>learn / study</b> <small style="color:#7A6652">(ee-THOO-ta) — "Re ithuta Setswana" = We are learning Setswana</small><br>🚶 <b>Tsamaya</b> = <b>go / travel / walk</b> <small style="color:#7A6652">(tsa-MAH-ya)</small><br><br>Right now you are doing <b>Bala</b> AND <b>Ithuta</b>! Well done!`,
+      `<div class="lang-tag">Setswana · Words — Greetings vocabulary</div>Mafoko a go dumedisa! 💬<br><br>👋 <b>Dumela</b> = <b>Hello</b> <small style="color:#7A6652">(to one person)</small><br>👋 <b>Dumelang</b> = <b>Hello everyone</b> <small style="color:#7A6652">(to a group)</small><br>❓ <b>O tsogile jang?</b> = <b>How did you wake up? / How are you?</b> <small style="color:#7A6652">(formal morning greeting)</small><br>✅ <b>Ke tsogile sentle</b> = <b>I woke up well / I am fine</b> <small style="color:#7A6652">(keh tso-GEE-leh SEN-tleh)</small><br>👋 <b>Sala sentle</b> = <b>Stay well (goodbye — to one staying)</b><br>🚶 <b>Tsamaya sentle</b> = <b>Go well (goodbye — to one leaving)</b><br><br>These greetings are used every single day in Botswana! 🇧🇼`,
+      `<div class="lang-tag">Setswana · Words — Useful phrases</div>Mafoko a go dirisiwa! 💬<br><br>🙏 <b>Ke a leboga</b> = <b>Thank you</b> <small style="color:#7A6652">(keh ah leh-BOH-ga) — formal</small><br>🙏 <b>Ke itumetse</b> = <b>I am grateful / thank you</b> <small style="color:#7A6652">(keh ee-too-MET-seh) — common form</small><br>🙏 <b>Tanki</b> = <b>Thank you</b> <small style="color:#7A6652">(TAN-kee) — casual, from English "thanks"</small><br>❓ <b>O kae?</b> = <b>Where are you?</b> <small style="color:#7A6652">(oh KAH-eh) — also means "how are you?" informally</small><br>✅ <b>Ke teng</b> = <b>I am here / I am fine</b> <small style="color:#7A6652">(keh TENG)</small><br><br>All three "thank you" words are real and common. Which one do YOU prefer?`,
+      `<div class="lang-tag">Setswana · Words — Wanting & Knowing</div>Go batla le go itse! 💬<br><br>💡 <b>Ke batla</b> = <b>I want / I am looking for</b> <small style="color:#7A6652">(keh BAT-la) — "Ke batla go bua" = I want to speak</small><br>📚 <b>Ke itse</b> = <b>I know</b> <small style="color:#7A6652">(keh EE-tseh) — "Ke itse Setswana" = I know Setswana</small><br>❓ <b>Ga ke itse</b> = <b>I don't know</b> <small style="color:#7A6652">(ga keh EE-tseh) — honest and useful!</small><br>🙋 <b>Ke kopa</b> = <b>I request / please</b> <small style="color:#7A6652">(keh KOH-pa) — polite way to ask for something</small><br><br>Try this sentence from the PDF guide:<br><b>"Ke batla go ithuta Setswana."</b> = I want to learn Setswana. 🎓`
+    ],
+    kalanga: [
+      `<div class="lang-tag">TjiKalanga · Words — Nature</div>TjiKalanga words from nature! 💬<br><br>💧 <b>Vula</b> = <b>water / rain</b> <small style="color:#7A6652">(VOO-la)</small><br>🔥 <b>Moto</b> = <b>fire / heat</b> <small style="color:#7A6652">(MOH-to)</small><br>⛰️ <b>Dombo</b> = <b>mountain / hill</b> <small style="color:#7A6652">(DOM-bo)</small><br>🌳 <b>Ti</b> = <b>tree / trees</b> <small style="color:#7A6652">(tee)</small><br>🦁 <b>Simba</b> = <b>lion</b> <small style="color:#7A6652">(SIM-ba) — also means strength!</small><br>🐊 <b>Ngwena</b> = <b>crocodile</b> <small style="color:#7A6652">(ng-WEH-na)</small><br><br>Say each word and picture it in your mind. Which animal would you NOT want to meet?`,
+      `<div class="lang-tag">TjiKalanga · Words — Family</div>TjiKalanga family words! 💬<br><br>👵 <b>Kuku</b> = <b>grandmother</b> <small style="color:#7A6652">(KOO-koo)</small><br>👨‍👩‍👧 <b>Bana</b> = <b>children</b> <small style="color:#7A6652">(BAH-na)</small><br>👶 <b>Ng'wanana</b> = <b>girl / female child</b> <small style="color:#7A6652">(ng-wa-NAH-na)</small><br>👦 <b>Isana</b> = <b>small boy</b> <small style="color:#7A6652">(ee-SAH-na)</small><br>👨 <b>Lume</b> = <b>man</b> <small style="color:#7A6652">(LOO-meh)</small><br>👩 <b>Kadzi</b> = <b>woman / wife</b> <small style="color:#7A6652">(KAH-dzee)</small><br><br>Say your family role in TjiKalanga — are you a <b>Lume</b> or a <b>Kadzi</b>?`,
+      `<div class="lang-tag">TjiKalanga · Words — Food &amp; Home</div>TjiKalanga food and home words! 💬<br><br>🍽️ <b>Ndilo</b> = <b>dish / plate</b> <small style="color:#7A6652">(nn-DEE-lo)</small><br>🫕 <b>Hali</b> = <b>cooking pot</b> <small style="color:#7A6652">(HAH-lee)</small><br>🥩 <b>Nyama</b> = <b>meat</b> <small style="color:#7A6652">(NYA-ma)</small><br>🌽 <b>Manga</b> = <b>maize / corn</b> <small style="color:#7A6652">(MAN-ga)</small><br>🏠 <b>Ng'umba</b> = <b>house / hut</b> <small style="color:#7A6652">(ng-OOM-ba)</small><br>🪵 <b>Huni</b> = <b>firewood</b> <small style="color:#7A6652">(HOO-nee)</small><br><br>Which of these things can you see in your home right now?`,
+      `<div class="lang-tag">TjiKalanga · Words — Body</div>TjiKalanga body words! 💬<br><br>👀 <b>Zhisho</b> = <b>eye</b> <small style="color:#7A6652">(ZHEE-sho)</small><br>👂 <b>Zebe</b> = <b>ear</b> <small style="color:#7A6652">(ZEH-beh)</small><br>👄 <b>Lomo</b> = <b>mouth / beak</b> <small style="color:#7A6652">(LOH-mo)</small><br>🦷 <b>Zhino</b> = <b>tooth</b> <small style="color:#7A6652">(ZHEE-no)</small><br>🦵 <b>Gumbo</b> = <b>leg / foot / wheel</b> <small style="color:#7A6652">(GOOM-bo)</small><br>💪 <b>Simba</b> = <b>strength / power</b> <small style="color:#7A6652">(SIM-ba)</small><br><br>Touch your <b>Zebe</b> (ear)! Now touch your <b>Zhisho</b> (eye)! Fun way to remember!`,
+      `<div class="lang-tag">TjiKalanga · Words — Actions (Verbs)</div>TjiKalanga action words! 💬<br><br>✍️ <b>Kwala</b> = <b>to write</b> <small style="color:#7A6652">(KWA-la)</small><br>📖 <b>Bala</b> = <b>to read / to count</b> <small style="color:#7A6652">(BAH-la)</small><br>🚶 <b>Enda</b> = <b>to go / go away</b> <small style="color:#7A6652">(EN-da)</small><br>😴 <b>Lala</b> = <b>to sleep / spend the night</b> <small style="color:#7A6652">(LAH-la)</small><br>🍽️ <b>Ja</b> = <b>to eat</b> <small style="color:#7A6652">(jah)</small><br>💬 <b>Leba</b> = <b>to talk / to speak</b> <small style="color:#7A6652">(LEH-ba)</small><br><br>Right now you are doing <b>Bala</b> (reading)! Well done!`,
+      `<div class="lang-tag">TjiKalanga · Words — Feelings &amp; Values</div>TjiKalanga feeling words! 💬<br><br>❤️ <b>Da</b> = <b>to love / to like</b> <small style="color:#7A6652">(dah)</small><br>😊 <b>Shatho</b> = <b>happiness</b> <small style="color:#7A6652">(SHA-tho)</small><br>🙏 <b>Tenda</b> = <b>to thank / show gratitude</b> <small style="color:#7A6652">(TEN-da)</small><br>🤝 <b>Thusa</b> = <b>to help / assist</b> <small style="color:#7A6652">(THOO-sa)</small><br>📚 <b>Diya</b> = <b>to teach / to preach</b> <small style="color:#7A6652">(DEE-ya)</small><br>💪 <b>Kunda</b> = <b>to defeat / succeed</b> <small style="color:#7A6652">(KOON-da)</small><br><br>You are showing <b>Shatho</b> (happiness) by learning today! Keep going! 🌟`
+    ],
+    kgalagadi: [
+      `<div class="lang-tag">Shekgalagari · Words — Essentials</div>Essential Shekgalagari words! 💬<br><br>Shekgalagari word → English meaning → Setswana equivalent:<br><br>💧 <b>Maze</b> = <b>water</b> <small style="color:#7A6652">(MAH-zeh) — Setswana: metsi</small><br>☀️ <b>Leatjsi</b> = <b>sun / day</b> <small style="color:#7A6652">(leh-AT-see) — Setswana: letsatsi</small><br>🏠 <b>Itu</b> = <b>house</b> <small style="color:#7A6652">(EE-too) — Setswana: ntlo</small><br>🏫 <b>Shekole</b> = <b>school</b> <small style="color:#7A6652">(sheh-KOH-leh) — Setswana: sekolo</small><br>🐄 <b>Rimho / Rikgomo</b> = <b>cattle / cows</b> <small style="color:#7A6652">(REE-mo) — Setswana: dikgomo</small><br><br>Say each word out loud. Which one is easiest to remember?`,
+      `<div class="lang-tag">Shekgalagari · Words — People</div>Shekgalagari people words! 💬<br><br>👦 <b>Mantjsana</b> = <b>boy</b> <small style="color:#7A6652">(man-TCHA-na) — Setswana: mosimane</small><br>👧 <b>Mosezana</b> = <b>girl</b> <small style="color:#7A6652">(mo-seh-ZAH-na) — Setswana: mosetsana</small><br>🧑 <b>Moqho</b> = <b>person</b> <small style="color:#7A6652">(MO-qo) — Setswana: motho</small><br>👶 <b>Motjhwana</b> = <b>child / kid</b> <small style="color:#7A6652">(mo-TCHWAH-na) — Setswana: ngwana</small><br>👫 <b>Kgalariyame</b> = <b>my brother / sister</b> <small style="color:#7A6652">(ka-la-REE-ya-meh) — Setswana: kgaitsadiake</small><br><br>Which word describes YOU or someone in your family?`,
+      `<div class="lang-tag">Shekgalagari · Words — Actions</div>Shekgalagari action words! 💬<br><br>⬇️ <b>Nto / Dah gkanno</b> = <b>come!</b> <small style="color:#7A6652">(nn-TOH / da-KAH-no) — Setswana: tla</small><br>🪑 <b>Rula</b> = <b>sit down</b> <small style="color:#7A6652">(ROO-la) — Setswana: nna</small><br>🧍 <b>Metshe</b> = <b>stand up</b> <small style="color:#7A6652">(MET-sheh) — Setswana: ema</small><br>👂 <b>Uzwa</b> = <b>hear / listen</b> <small style="color:#7A6652">(OO-zwa) — Setswana: utlwa</small><br>🗣️ <b>Bola / Logka</b> = <b>talk / speak</b> <small style="color:#7A6652">(BOH-la / LOG-ka) — Setswana: bua</small><br><br>Try: say <b>Rula!</b> (sit down!) to someone near you!`,
+      `<div class="lang-tag">Shekgalagari · Words — Everyday Life</div>More Shekgalagari daily words! 💬<br><br>🥛 <b>Moriso</b> = <b>milk</b> <small style="color:#7A6652">(mo-REE-so) — Setswana: mashi</small><br>🙏 <b>Morimo</b> = <b>God</b> <small style="color:#7A6652">(mo-REE-mo) — Setswana: modimo</small><br>🆘 <b>Ntjhusa / Ntjhwisa</b> = <b>help me!</b> <small style="color:#7A6652">(nn-TCHOO-sa) — Setswana: nthusa</small><br>🍳 <b>Relaa / Relega</b> = <b>to cook</b> <small style="color:#7A6652">(reh-LAH) — Setswana: apaya</small><br>❓ <b>Hakeze</b> = <b>I don't know</b> <small style="color:#7A6652">(hah-KEH-zeh) — Setswana: gakeitse</small><br><br>Very useful: <b>"Hakeze"</b> = I don't know! A brave and honest thing to say while learning!`,
+      `<div class="lang-tag">Shekgalagari · Words — Feelings</div>Shekgalagari feeling words! 💬<br><br>😴 <b>Daleja nda ka lapa</b> = <b>I am tired</b> <small style="color:#7A6652">(dah-LEH-ja nda ka LAH-pa) — Setswana: Ke lapile</small><br>👂 <b>Uzwa</b> = <b>hear / understand</b> <small style="color:#7A6652">(OO-zwa) — to listen and understand</small><br>🗣️ <b>Bola</b> = <b>talk / speak</b> <small style="color:#7A6652">(BOH-la) — to express yourself</small><br>🙏 <b>Ntjhusa</b> = <b>help me</b> <small style="color:#7A6652">(nn-TCHOO-sa) — asking for help is brave!</small><br><br>When you are tired: <b>Daleja nda ka lapa</b> — "I am tired."<br>That is a real Shekgalagari sentence you can use today! 🌟`
+    ],
+    mbukushu: [
+      `<div class="lang-tag">Thimbukushu · Words — People</div>Thimbukushu people words! 💬<br><br>All verified from the dictionary:<br><br>🧑 <b>Ame</b> = <b>I / me</b> <small style="color:#7A6652">(AH-meh)</small><br>👤 <b>Owe</b> = <b>you</b> <small style="color:#7A6652">(OH-weh)</small><br>👥 <b>Aye</b> = <b>he / she</b> <small style="color:#7A6652">(AH-yeh)</small><br>👨‍👩‍👧 <b>Hanu</b> = <b>people</b> <small style="color:#7A6652">(HAH-noo)</small><br>🤝 <b>Mushere</b> = <b>friend</b> <small style="color:#7A6652">(moo-SHEH-reh)</small><br><br>Example: <b>"Ame na haka kutoya"</b> = I like reading.<br>Try making a sentence using <b>Ame</b> (I)!`,
+      `<div class="lang-tag">Thimbukushu · Words — Nature & Time</div>Thimbukushu nature and time words! 💬<br><br>☀️ <b>Diyuwa</b> = <b>sun</b> <small style="color:#7A6652">(dee-YOO-wa)</small><br>📅 <b>Dyaro</b> = <b>today</b> <small style="color:#7A6652">(DYA-ro) — "Dyaro ne mepo" = Today it's cold</small><br>🌿 <b>Yidya</b> = <b>food</b> <small style="color:#7A6652">(YEE-dya) — "Ghahaka yidya" = He/she likes food</small><br>🦟 <b>Kamwe</b> = <b>mosquito</b> <small style="color:#7A6652">(KAM-weh) — "Kamwe ka ni humu" = I was bitten by a mosquito</small><br><br>Which of these words connects to something in YOUR day today?`,
+      `<div class="lang-tag">Thimbukushu · Words — Actions</div>Thimbukushu action words! 💬<br><br>🚶 <b>Kuyenda</b> = <b>to walk</b> <small style="color:#7A6652">(koo-YEN-da) — "Ame kuna kuyenda" = I am walking</small><br>🏃 <b>Tjire</b> = <b>run!</b> <small style="color:#7A6652">(TJEE-reh) — a command: run!</small><br>🏠 <b>Wiye</b> = <b>come!</b> <small style="color:#7A6652">(WEE-yeh) — "Wiye kudimbo" = Come home</small><br>📖 <b>Kutoya</b> = <b>reading</b> <small style="color:#7A6652">(koo-TOY-a) — "Ame na haka kutoya" = I like reading</small><br>🗣️ <b>Kuhonga</b> = <b>to teach</b> <small style="color:#7A6652">(koo-HON-ga) — "Aye kuna kuhonga" = He/she is teaching</small><br><br>You are doing <b>Kutoya</b> right now! Reading is powerful! 📖`,
+      `<div class="lang-tag">Thimbukushu · Words — Feelings & Values</div>Thimbukushu feeling words! 💬<br><br>☮️ <b>Thiraro</b> = <b>peace</b> <small style="color:#7A6652">(thee-RAH-ro) — "Thiraro ne tha reta makukwatathano" = Peace brings collaboration</small><br>😴 <b>Ghuva</b> = <b>lazy</b> <small style="color:#7A6652">(GHOO-va) — "Mbadi kukaranga ghuva" = Don't be lazy!</small><br>💡 <b>Dimuka</b> = <b>to know / understand</b> <small style="color:#7A6652">(dee-MOO-ka) — "Owe wa dimuka" = You know</small><br>🗣️ <b>Kughamba</b> = <b>to speak</b> <small style="color:#7A6652">(koo-GHAM-ba) — "Ame kughamba Thimbukushu" = I speak Thimbukushu</small><br><br>You are NOT <b>Ghuva</b> (lazy) — you are here learning! Well done! 🌟`
+    ],
+    english: [
+      `<div class="lang-tag">English · Words — Everyday Essentials</div>Important English words you need every day! 💬<br><br>English word = meaning + used where:<br><br>💧 <b>Water</b> = liquid you drink <small style="color:#7A6652">(Setswana: metsi) — "I want water"</small><br>🍽️ <b>Food</b> = what you eat <small style="color:#7A6652">(Setswana: dijo) — "I need food"</small><br>🏠 <b>House</b> = where you live <small style="color:#7A6652">(Setswana: ntlo)</small><br>🏫 <b>School</b> = where children learn <small style="color:#7A6652">(Setswana: sekolo)</small><br>💰 <b>Money</b> = what you use to buy things <small style="color:#7A6652">(Setswana: madi / pula)</small><br><br>Say each word out loud. Which word do you use most every day?`,
+      `<div class="lang-tag">English · Words — People & Community</div>English words for people around you! 💬<br><br>👨‍👩‍👧 <b>Family</b> = your relatives <small style="color:#7A6652">(Setswana: lelapa)</small><br>🤝 <b>Friend</b> = someone you like and trust <small style="color:#7A6652">(Setswana: tsala)</small><br>👨‍⚕️ <b>Doctor</b> = medical person who helps you <small style="color:#7A6652">(Setswana: ngaka)</small><br>👩‍🏫 <b>Teacher</b> = person who teaches <small style="color:#7A6652">(Setswana: morutabana)</small><br>👮 <b>Police</b> = law officers who keep peace <small style="color:#7A6652">(Setswana: mapodisi)</small><br><br>Which person do you interact with most in your daily life?`,
+      `<div class="lang-tag">English · Words — Actions (Verbs)</div>English action words you must know! 💬<br><br>📖 <b>Read</b> = to look at and understand writing <small style="color:#7A6652">(Setswana: bala) — "I read" / "I am reading"</small><br>✍️ <b>Write</b> = to make letters on paper <small style="color:#7A6652">(Setswana: kwala)</small><br>🗣️ <b>Speak / Talk</b> = to use your voice <small style="color:#7A6652">(Setswana: bua)</small><br>🎓 <b>Learn</b> = to get new knowledge <small style="color:#7A6652">(Setswana: ithuta)</small><br>🏃 <b>Work</b> = to do a job <small style="color:#7A6652">(Setswana: bereka)</small><br><br>Right now you are doing all of these — reading, learning and writing! 🌟`,
+      `<div class="lang-tag">English · Words — Places</div>English words for important places! 💬<br><br>🏥 <b>Hospital / Clinic</b> = where sick people go <small style="color:#7A6652">(Setswana: sepetlele)</small><br>🏬 <b>Shop / Store</b> = where you buy things <small style="color:#7A6652">(Setswana: lebenkele)</small><br>🏦 <b>Bank</b> = where you keep money <small style="color:#7A6652">(Setswana: banka)</small><br>🚌 <b>Bus stop</b> = where the bus picks you up <small style="color:#7A6652">(Setswana: moo bese e emang teng)</small><br>💼 <b>Office</b> = place of work <small style="color:#7A6652">(Setswana: ofisi)</small><br><br>You will see these words written on signs everywhere in Botswana. Now you can read them! 🎉`,
+      `<div class="lang-tag">English · Words — Numbers & Documents</div>English words for official things! 💬<br><br>📄 <b>Form</b> = a document you fill in <small style="color:#7A6652">(Setswana: fomo)</small><br>✍️ <b>Sign</b> = to write your name on a document <small style="color:#7A6652">(Setswana: saina)</small><br>🧾 <b>Receipt</b> = proof that you paid <small style="color:#7A6652">(Setswana: risiti)</small><br>🆔 <b>Identity / ID</b> = your identification card <small style="color:#7A6652">(Setswana: karata ya boitshupo)</small><br>📞 <b>Number</b> = a figure, e.g. phone number <small style="color:#7A6652">(Setswana: nomoro)</small><br><br>These words appear on every form, receipt and ID in Botswana. Knowing them helps you in every office!`,
+      `<div class="lang-tag">English · Words — Feelings & Communication</div>English words for feelings! 💬<br><br>😊 <b>Happy</b> = feeling good and joyful <small style="color:#7A6652">(Setswana: go itumela)</small><br>😔 <b>Tired</b> = needing rest <small style="color:#7A6652">(Setswana: lapile)</small><br>🙏 <b>Thank you</b> = showing gratitude <small style="color:#7A6652">(Setswana: ke a leboga)</small><br>❓ <b>Please</b> = asking politely <small style="color:#7A6652">(Setswana: ke kopa)</small><br>✅ <b>Yes</b> = agreeing <small style="color:#7A6652">(Setswana: ee)</small><br>❌ <b>No</b> = refusing or disagreeing <small style="color:#7A6652">(Setswana: nyaa)</small><br><br>"Thank you", "Please", "Yes", "No" — four words that will take you far in any English conversation! 🌟`
+    ]
+  },
+
+  // ─── SENTENCES ───
+  sentences: {
+    setswana: [
+      `<div class="lang-tag">Setswana · Sentences 1 — Greetings</div>Mafoko a go dumedisa — real greetings from the Setswana guide! 📄<br><br>Each line: Setswana → English → key words:<br><br>👋 <b>"Dumela, rra."</b> = <i>Hello, sir.</i> <small style="color:#7A6652">rra = sir / Mr.</small><br>👋 <b>"Dumela, mma."</b> = <i>Hello, ma'am.</i> <small style="color:#7A6652">mma = ma'am / Mrs.</small><br>👋 <b>"Dumelang, borra."</b> = <i>Hello everyone (men).</i> <small style="color:#7A6652">borra = gentlemen / group of men</small><br>❓ <b>"O tsogile jang?"</b> = <i>How are you? (morning)</i> <small style="color:#7A6652">tsogile = woke up · jang = how</small><br>✅ <b>"Ke tsogile sentle."</b> = <i>I am fine / I woke up well.</i><br><br>These are real phrases from a published Setswana teaching guide. Say them all!`,
+      `<div class="lang-tag">Setswana · Sentences 2 — Who you are</div>Sentences about yourself — from the PDF guide! 📄<br><br>🏷️ <b>"Leina la me ke ___."</b> = <i>My name is ___.</i><br><small style="color:#7A6652">Leina = name · la me = my · ke = is</small><br><br>❓ <b>"Leina la gago ke mang?"</b> = <i>What is your name?</i><br><small style="color:#7A6652">la gago = your · mang = who</small><br><br>🌍 <b>"Ke nna wa Botswana."</b> = <i>I am from Botswana.</i><br><small style="color:#7A6652">Ke nna = it is me · wa = of</small><br><br>Practice: say <b>"Leina la me ke ___"</b> and fill in YOUR name. This is the most important sentence!`,
+      `<div class="lang-tag">Setswana · Sentences 3 — Wanting & Learning</div>Sentences from Cycle 16 of the Setswana guide! 📄<br><br>🗣️ <b>"Ke batla go bua Setswana."</b> = <i>I want to speak Setswana.</i><br><small style="color:#7A6652">ke batla = I want · go bua = to speak</small><br><br>📖 <b>"Ke batla go bala Setswana."</b> = <i>I want to read Setswana.</i><br><small style="color:#7A6652">go bala = to read</small><br><br>✍️ <b>"Ke batla go kwala Setswana."</b> = <i>I want to write Setswana.</i><br><small style="color:#7A6652">go kwala = to write</small><br><br>🎓 <b>"Re batla go bua."</b> = <i>We want to speak.</i><br><small style="color:#7A6652">Re = we</small><br><br>Which sentence best describes YOU right now?`,
+      `<div class="lang-tag">Setswana · Sentences 4 — Daily actions</div>Sentences for every day! 📄<br><br>🏫 <b>"Ke ya sekolong."</b> = <i>I am going to school.</i><br><small style="color:#7A6652">ke ya = I am going · sekolong = to school (sekolo = school)</small><br><br>🍽️ <b>"Ke a ja."</b> = <i>I am eating.</i><br><small style="color:#7A6652">ke a ja = I am eating right now (a = currently doing)</small><br><br>📖 <b>"Ke a bala."</b> = <i>I am reading.</i><br><small style="color:#7A6652">ke a bala = I am reading (you are doing this now!)</small><br><br>🎵 <b>"Re a nwa."</b> = <i>We are drinking.</i><br><small style="color:#7A6652">Re = we · a nwa = drinking</small><br><br>Say: <b>"Ke a bala"</b> — because you ARE reading right now! 📖`,
+      `<div class="lang-tag">Setswana · Sentences 5 — Knowing & Not Knowing</div>Honest Setswana sentences! 📄<br><br>✅ <b>"Ke itse Setswana."</b> = <i>I know Setswana.</i><br><small style="color:#7A6652">ke itse = I know</small><br><br>❌ <b>"Ga ke itse Setswana sentle."</b> = <i>I don't know Setswana well.</i><br><small style="color:#7A6652">ga ke = I don't · sentle = well</small><br><br>🗣️ <b>"Ke bua Setswana."</b> = <i>I speak Setswana.</i><br><br>❌ <b>"Ga ke bue Setswana sentle."</b> = <i>I don't speak Setswana well yet.</i><br><small style="color:#7A6652">That is okay! Every learner starts somewhere. Tswelela = Keep going!</small><br><br>Which sentence is true for you today?`,
+      `<div class="lang-tag">Setswana · Sentences 6 — Goodbyes & Wisdom</div>Beautiful Setswana farewells! 📄<br><br>🚶 <b>"Tsamaya sentle."</b> = <i>Go well.</i> (said to one who is leaving)<br><small style="color:#7A6652">tsamaya = go/travel · sentle = well</small><br><br>🏠 <b>"Sala sentle."</b> = <i>Stay well.</i> (said to one who is staying)<br><small style="color:#7A6652">sala = stay/remain · sentle = well</small><br><br>😴 <b>"Robala sentle."</b> = <i>Sleep well.</i><br><small style="color:#7A6652">robala = sleep · sentle = well</small><br><br>💧 <b>"Pula!"</b> = <i>Rain! / Cheers! / Blessings!</i><br><small style="color:#7A6652">The national motto — shouted at celebrations!</small><br><br>End every day with: <b>"Robala sentle"</b> and every goodbye with <b>"Tsamaya sentle"</b>! 🇧🇼`
+    ],
+    kalanga: [
+      `<div class="lang-tag">TjiKalanga · Sentences 1 — Greetings</div>Let's learn real TjiKalanga greetings! 📄<br><br>Each line shows: TjiKalanga → English → key word explained:<br><br>👋 <b>"Dumilani."</b> = <i>Hello / Good morning.</i><br><small style="color:#7A6652">dumilani = greet (used for one or more people)</small><br><br>❓ <b>"Mamuka tjini?"</b> = <i>How are you?</i><br><small style="color:#7A6652">mamuka = you woke up, tjini = how/what</small><br><br>✅ <b>"Tamuka totibathu."</b> = <i>I am fine, thank you.</i><br><small style="color:#7A6652">tamuka = I woke up well, totibathu = we are fine</small><br><br>Try reading the greeting out loud: <b>"Dumilani. Mamuka tjini?"</b>`,
+      `<div class="lang-tag">TjiKalanga · Sentences 2 — Who you are</div>Sentences about yourself! 📄<br><br>👤 <b>"Zina rangu ndi ___."</b> = <i>My name is ___.</i><br><small style="color:#7A6652">zina = name · rangu = my · ndi = is</small><br><br>🌍 <b>"Ndodwa kuBotswana."</b> = <i>I come from Botswana.</i><br><small style="color:#7A6652">ndodwa = I come · ku = from</small><br><br>👁️ <b>"Ndi ingwi ani?"</b> = <i>Who are you?</i><br><small style="color:#7A6652">ndi = it is · ingwi = you · ani = who</small><br><br>Practice: say your name using <b>"Zina rangu ndi ___"</b> right now!`,
+      `<div class="lang-tag">TjiKalanga · Sentences 3 — Everyday actions</div>Sentences for daily life! 📄<br><br>🏫 <b>"Ndinoenda kwele."</b> = <i>I am going to school.</i><br><small style="color:#7A6652">ndinoenda = I am going · kwele = school</small><br><br>💧 <b>"Ndinoda vula."</b> = <i>I want / need water.</i><br><small style="color:#7A6652">ndinoda = I want · vula = water/rain</small><br><br>🍽️ <b>"Ndinoda kudya."</b> = <i>I want food.</i><br><small style="color:#7A6652">kudya = food / to eat</small><br><br>Which of these sentences would be most useful to you today?`,
+      `<div class="lang-tag">TjiKalanga · Sentences 4 — Feelings &amp; thanks</div>Sentences about feelings! 📄<br><br>🙏 <b>"Ndaboka."</b> = <i>Thank you.</i><br><small style="color:#7A6652">(nda-BOH-ka) — one of the most important TjiKalanga words!</small><br><br>😊 <b>"Ndoshatha kushangana na'ngwi."</b> = <i>It was nice meeting you.</i><br><small style="color:#7A6652">ndoshatha = I was happy · kushangana = to meet · na'ngwi = with you</small><br><br>😔 <b>"Anditoziba TjiKalanga zwibuyanana."</b> = <i>I do not know TjiKalanga well yet.</i><br><small style="color:#7A6652">anditoziba = I do not know · zwibuyanana = very well</small><br><br>That last sentence is honest and brave — say it proudly as you keep learning!`,
+      `<div class="lang-tag">TjiKalanga · Sentences 5 — People &amp; things</div>Sentences about people and objects! 📄<br><br>👶 <b>"Bana ba gala."</b> = <i>The children are sitting / staying.</i><br><small style="color:#7A6652">bana = children · ba = they · gala = to sit/live</small><br><br>🔥 <b>"Moto ufuma."</b> = <i>The fire is hot / rich.</i><br><small style="color:#7A6652">moto = fire · ufuma = it is rich/hot (fuma = to be rich)</small><br><br>🐟 <b>"Hobe iri munoka."</b> = <i>The fish is in the river.</i><br><small style="color:#7A6652">hobe = fish · munoka = in the river (noka = river in Setswana, same root)</small><br><br>Read each sentence slowly and picture it in your mind!`,
+      `<div class="lang-tag">TjiKalanga · Sentences 6 — Asking &amp; replying</div>Useful question sentences! 📄<br><br>❓ <b>"Kuthu ikoku kodana bungana?"</b> = <i>How much does this thing cost?</i><br><small style="color:#7A6652">kuthu = thing · ikoku = this · kodana = how much · bungana = amount</small><br><br>📍 <b>"Unoyenda kupi?"</b> = <i>Where are you going?</i><br><small style="color:#7A6652">unoyenda = you are going · kupi = where</small><br><br>✅ <b>"Ee."</b> = <i>Yes.</i> &nbsp;&nbsp; ❌ <b>"Aa."</b> = <i>No.</i><br><small style="color:#7A6652">ee = yes (agreement) · aa = no (denial/refusal)</small><br><br>These three sentences will help you in any shop or market in Botswana! 🛒`
+    ],
+    kgalagadi: [
+      `<div class="lang-tag">Shekgalagari · Sentences 1 — Greetings</div>Real Shekgalagari greetings! 📄<br><br>Shekgalagari sentence → English → key words:<br><br>👋 <b>"Dumela."</b> = <i>Hello.</i><br><small style="color:#7A6652">Same as Setswana! Very close languages</small><br><br>👋 <b>"Dumela, rra."</b> = <i>Hello, sir.</i><br><small style="color:#7A6652">rra = sir / Mr. (used for men)</small><br><br>👋 <b>"Dumela, mma."</b> = <i>Hello, ma'am.</i><br><small style="color:#7A6652">mma = ma'am / Mrs. (used for women)</small><br><br>Try saying: <b>"Dumela, rra!"</b> or <b>"Dumela, mma!"</b><br>Use the right one depending on who you are greeting!`,
+      `<div class="lang-tag">Shekgalagari · Sentences 2 — Who you are</div>Sentences about yourself! 📄<br><br>🏷️ <b>"Leina la me ke ___."</b> = <i>My name is ___.</i><br><small style="color:#7A6652">Leina = name · la me = my · ke = is</small><br><br>❓ <b>"Leina la gago ke mang?"</b> = <i>What is your name?</i><br><small style="color:#7A6652">la gago = your · mang = who/what</small><br><br>🌍 <b>"Ke nna wa Botswana."</b> = <i>I am from Botswana.</i><br><small style="color:#7A6652">Ke nna = it is me · wa = of / from</small><br><br>Practice: say <b>"Leina la me ke ___"</b> and fill in YOUR name right now!`,
+      `<div class="lang-tag">Shekgalagari · Sentences 3 — Commands</div>Shekgalagari command sentences! 📄<br><br>These are real classroom commands used in Shekgalagari:<br><br>⬇️ <b>"Tla!"</b> / <b>"Nto!"</b> = <i>Come!</i><br><small style="color:#7A6652">Both mean come — nto is the Shekgalagari form</small><br><br>🪑 <b>"Rula!"</b> = <i>Sit down!</i><br><small style="color:#7A6652">(ROO-la) — "Nna!" in Setswana</small><br><br>🧍 <b>"Metshe!"</b> = <i>Stand up!</i><br><small style="color:#7A6652">(MET-sheh) — "Ema!" in Setswana</small><br><br>👂 <b>"Uzwa!"</b> = <i>Listen!</i><br><small style="color:#7A6652">(OO-zwa) — "Utlwa!" in Setswana</small><br><br>These 4 commands are used in schools every day. Try saying them all!`,
+      `<div class="lang-tag">Shekgalagari · Sentences 4 — Asking for help</div>Important sentences for real life! 📄<br><br>🆘 <b>"Ntjhusa!"</b> = <i>Help me!</i><br><small style="color:#7A6652">(nn-TCHOO-sa) — "Nthusa!" in Setswana</small><br><br>❓ <b>"Hakeze."</b> = <i>I don't know.</i><br><small style="color:#7A6652">(hah-KEH-zeh) — "Ga ke itse" in Setswana. Honest and useful!</small><br><br>🍳 <b>"Ke relaa."</b> = <i>I am cooking.</i><br><small style="color:#7A6652">relaa = to cook — "ke apaya" in Setswana</small><br><br>😴 <b>"Daleja nda ka lapa."</b> = <i>I am tired.</i><br><small style="color:#7A6652">(dah-LEH-ja nda ka LAH-pa) — "Ke lapile" in Setswana</small><br><br>Which of these sentences would be most useful to you today?`,
+      `<div class="lang-tag">Shekgalagari · Sentences 5 — Daily life</div>Sentences for everyday Shekgalagari! 📄<br><br>🥛 <b>"Ke batla moriso."</b> = <i>I want milk.</i><br><small style="color:#7A6652">ke batla = I want · moriso = milk (mashi in Setswana)</small><br><br>💧 <b>"Ke batla maze."</b> = <i>I want water.</i><br><small style="color:#7A6652">maze = water (metsi in Setswana)</small><br><br>🏫 <b>"Ke ya shekoleng."</b> = <i>I am going to school.</i><br><small style="color:#7A6652">ke ya = I am going · shekoleng = to school (shekole = school)</small><br><br>🗣️ <b>"Ke bola Shekgalagari."</b> = <i>I speak Shekgalagari.</i><br><small style="color:#7A6652">ke bola = I speak · Shekgalagari = the language name</small><br><br>Say the last sentence proudly: <b>"Ke bola Shekgalagari!"</b> 🌟`,
+      `<div class="lang-tag">Shekgalagari · Sentences 6 — Wisdom</div>Shekgalagari wisdom! 📄<br><br>💧 <b>"Maze ke botshelo."</b> = <i>Water is life.</i><br><small style="color:#7A6652">maze = water · ke = is · botshelo = life</small><br><br>🙏 <b>"Ntjhusa go ithuta."</b> = <i>Help me to learn.</i><br><small style="color:#7A6652">ntjhusa = help me · go ithuta = to learn</small><br><br>🌍 <b>"Re bua Shekgalagari."</b> = <i>We speak Shekgalagari.</i><br><small style="color:#7A6652">Re = we · bua = speak (Setswana word, shared!)</small><br><br>The Kgalagadi language is spoken across the Kalahari desert — one of the world's oldest landscapes. Speaking it connects you to thousands of years of history. 🏜️`
+    ],
+    mbukushu: [
+      `<div class="lang-tag">Thimbukushu · Sentences 1 — Who you are</div>Real Thimbukushu sentences! 📄<br><br>Each line: Thimbukushu → English → key words explained:<br><br>👤 <b>"Ame kughamba Thimbukushu."</b><br>= <i>I speak Thimbukushu.</i><br><small style="color:#7A6652">Ame = I · kughamba = to speak · Thimbukushu = the language name</small><br><br>🏷️ <b>"Dina dyange ne yame ___."</b><br>= <i>My name is ___.</i><br><small style="color:#7A6652">Dina dyange = my name · ne yame = is (it is me)</small><br><br>Try it! Say: <b>"Dina dyange ne yame ___"</b> — fill in YOUR name!`,
+      `<div class="lang-tag">Thimbukushu · Sentences 2 — Wanting & Knowing</div>More real Thimbukushu sentences! 📄<br><br>💡 <b>"Owe wa dimuka kughamba Thimbukushu."</b><br>= <i>You know how to speak Thimbukushu.</i><br><small style="color:#7A6652">Owe = you · wa dimuka = you know · kughamba = to speak</small><br><br>🙏 <b>"Na shana kudimuka kughamba ndimi dho Thimbukushu."</b><br>= <i>I want to know how to speak the Thimbukushu language.</i><br><small style="color:#7A6652">Na shana = I want · kudimuka = to know · ndimi = language</small><br><br>Read the second sentence slowly. You are living it right now — you WANT to learn! 🌟`,
+      `<div class="lang-tag">Thimbukushu · Sentences 3 — Daily life</div>Sentences for every day! 📄<br><br>📖 <b>"Ame na haka kutoya."</b><br>= <i>I like reading.</i><br><small style="color:#7A6652">Ame = I · na haka = I like · kutoya = reading</small><br><br>🚶 <b>"Ame kuna kuyenda."</b><br>= <i>I am walking.</i><br><small style="color:#7A6652">kuna = currently/am · kuyenda = to walk</small><br><br>🏠 <b>"Wiye kudimbo."</b><br>= <i>Come home.</i><br><small style="color:#7A6652">Wiye = come · kudimbo = home/to the home</small><br><br>Which sentence would you use most today?`,
+      `<div class="lang-tag">Thimbukushu · Sentences 4 — Teaching & Feelings</div>Deeper Thimbukushu sentences! 📄<br><br>👩‍🏫 <b>"Aye kuna kuhonga."</b><br>= <i>He / she is teaching.</i><br><small style="color:#7A6652">Aye = he/she · kuna = is (currently) · kuhonga = to teach</small><br><br>🤝 <b>"Dina dya mushere wange ne Ella."</b><br>= <i>My friend's name is Ella.</i><br><small style="color:#7A6652">Dina dya = the name of · mushere wange = my friend · ne = is</small><br><br>☮️ <b>"Thiraro ne tha reta makukwatathano."</b><br>= <i>Peace brings collaboration.</i><br><small style="color:#7A6652">Thiraro = peace · tha reta = it brings · makukwatathano = collaboration</small><br><br>A beautiful saying! Peace brings people together. 🌍`,
+      `<div class="lang-tag">Thimbukushu · Sentences 5 — Today & Time</div>Time sentences in Thimbukushu! 📄<br><br>📅 <b>"Dyaro ne mepo."</b><br>= <i>Today it is cold.</i><br><small style="color:#7A6652">Dyaro = today · ne = it is · mepo = cold</small><br><br>🏫 <b>"Kuna kukara maranga kushure."</b><br>= <i>Running late to school.</i><br><small style="color:#7A6652">Kuna kukara = is being · maranga = late · kushure = to school</small><br><br>🦟 <b>"Kamwe ka ni humu."</b><br>= <i>I have been bitten by a mosquito.</i><br><small style="color:#7A6652">Kamwe = mosquito · ka ni humu = it bit me</small><br><br>Read slowly and picture each scene. Which sentence made you smile?`,
+      `<div class="lang-tag">Thimbukushu · Sentences 6 — Proverbs & Wisdom</div>Beautiful Thimbukushu wisdom! 📄<br><br>😴 <b>"Mbadi kukaranga ghuva."</b><br>= <i>Don't be lazy.</i><br><small style="color:#7A6652">Mbadi = don't · kukaranga = be/become · ghuva = lazy</small><br><br>👥 <b>"Hanu hahaka mandimi."</b><br>= <i>People like languages.</i><br><small style="color:#7A6652">Hanu = people · hahaka = they like · mandimi = languages</small><br><br>☀️ <b>"Kutumunekara thishe."</b><br>= <i>The sun brightens the day.</i><br><small style="color:#7A6652">Kutumunekara = it brightens · thishe = the day / the light</small><br><br>You are like the sun — <b>Kutumunekara thishe</b> — brightening your future by learning today! 🌟`
+    ],
+    english: [
+      `<div class="lang-tag">English · Sentences</div>Let's read sentences! 📄<br><br>Try to read these:<br><b>"My name is ___."</b><br><b>"I live in Botswana."</b><br><b>"I want to learn."</b><br><b>"Water is life."</b><br><br>Read slowly… Well done! 🌟<br>Which sentence is easiest for you?`,
+      `<div class="lang-tag">English · Sentences</div>Excellent! 🎉 More practice:<br><br><b>"I go to the shop."</b><br><b>"The bus is here."</b><br><b>"I drink water every day."</b><br><b>"My children go to school."</b><br><br>Try to say one sentence about your day!`
+    ]
+  },
+
+  // ─── DAILY LIFE ───
+  daily: {
+    setswana: [
+      `<div class="lang-tag">Setswana · Daily Life — Places</div>Mafelo a a botlhokwa — important places! 🏠<br><br>🏬 <b>Lebenkele</b> = <b>shop / store</b> <small style="color:#7A6652">(leh-BEN-keh-leh)</small><br>🚌 <b>Bese</b> = <b>bus</b> <small style="color:#7A6652">(BEH-seh)</small><br>🏥 <b>Sepetlele</b> = <b>hospital</b> <small style="color:#7A6652">(seh-peh-TLEh-leh)</small><br>🏫 <b>Sekolo</b> = <b>school</b> <small style="color:#7A6652">(seh-KOH-lo)</small><br>🏦 <b>Banka</b> = <b>bank</b> <small style="color:#7A6652">(BAN-ka — sounds like English!)</small><br><br>O ya kwa letsatsi le letsatsi? (Where do you go every day?)`,
+      `<div class="lang-tag">Setswana · Daily Life — Work & Documents</div>Tirelo le ditatamente! 💼<br><br>💼 <b>Tirelo</b> = <b>work / service</b> <small style="color:#7A6652">(tee-REH-lo) — "Ke bereka" = I work</small><br>📄 <b>Pampiri</b> = <b>paper / document</b> <small style="color:#7A6652">(pam-PEE-ree)</small><br>✍️ <b>Saina</b> = <b>to sign</b> <small style="color:#7A6652">(SAH-ee-na — from English)</small><br>🧾 <b>Risiti</b> = <b>receipt</b> <small style="color:#7A6652">(ree-SEE-tee)</small><br>📞 <b>Mogala</b> = <b>telephone</b> <small style="color:#7A6652">(mo-GAH-la) — traditional word</small><br><br>Next time you sign a document, say: <b>"Ke saina"</b> = I am signing! ✍️`,
+      `<div class="lang-tag">Setswana · Daily Life — Home & Food</div>Ntlo le dijo! 🏡<br><br>🏠 <b>Ntlo</b> = <b>house</b> <small style="color:#7A6652">(nn-TLO)</small><br>🍲 <b>Bogobe</b> = <b>porridge (thick)</b> <small style="color:#7A6652">(bo-GOH-beh) — traditional food of Botswana</small><br>💧 <b>Metsi</b> = <b>water</b> <small style="color:#7A6652">(MET-see)</small><br>🥛 <b>Mashi</b> = <b>milk</b> <small style="color:#7A6652">(MAH-shee)</small><br>🍽️ <b>Dijana</b> = <b>dishes / plates</b> <small style="color:#7A6652">(dee-JAH-na) — "Ke ahatswa dijana" = I am washing dishes</small><br><br>Bogobe ke dijo tsa setshaba sa Botswana — porridge is the national food! Do you eat it?`,
+      `<div class="lang-tag">Setswana · Daily Life — Time & Weather</div>Nako le boemo ba layetse! ⏰<br><br>☀️ <b>Letsatsi</b> = <b>sun / day</b> <small style="color:#7A6652">(leh-TSAT-see)</small><br>🌙 <b>Bosigo</b> = <b>night</b> <small style="color:#7A6652">(bo-SEE-go)</small><br>🌅 <b>Mosong</b> = <b>morning</b> <small style="color:#7A6652">(mo-SONG)</small><br>❄️ <b>Tsididi</b> = <b>cold</b> <small style="color:#7A6652">(tsee-DEE-dee) — "Go tsididi thata" = It is very cold</small><br>🌧️ <b>Pula</b> = <b>rain</b> <small style="color:#7A6652">(POO-la) — also means money and blessings!</small><br><br>Mo Botswana, go bua "Pula!" ke go bua "Blessings!" — Rain is a precious gift here! 🌧️`
+    ],
+    kalanga: [
+      `<div class="lang-tag">TjiKalanga · Daily Life — Places</div>TjiKalanga words for places you visit! 🏠<br><br>🏫 <b>Kwele</b> = <b>school</b> <small style="color:#7A6652">(KWEH-leh)</small><br>🏦 <b>Banka</b> = <b>bank</b> <small style="color:#7A6652">(BAN-ka — sounds like English!)</small><br>🏨 <b>Hotela</b> = <b>hotel</b> <small style="color:#7A6652">(ho-TEH-la — sounds like English!)</small><br>⛪ <b>Tshipi</b> = <b>church / Sunday</b> <small style="color:#7A6652">(TSHEE-pee)</small><br>🏥 <b>I patela</b> = <b>hospital</b> <small style="color:#7A6652">(ee pa-TEH-la)</small><br>🛒 <b>Tengo</b> = <b>purchase / shopping</b> <small style="color:#7A6652">(TEN-go)</small><br><br>Which of these places did you visit this week?`,
+      `<div class="lang-tag">TjiKalanga · Daily Life — Transport &amp; Documents</div>Getting around in TjiKalanga! 🚗<br><br>🚗 <b>Koloyi</b> = <b>vehicle / wagon</b> <small style="color:#7A6652">(ko-LOY-ee)</small><br>🚂 <b>Tirina</b> = <b>train</b> <small style="color:#7A6652">(tee-REE-na)</small><br>📄 <b>Pampiri</b> = <b>paper / document</b> <small style="color:#7A6652">(pam-PEE-ree)</small><br>🧾 <b>Resiti</b> = <b>receipt</b> <small style="color:#7A6652">(reh-SEE-tee)</small><br>📞 <b>Founi</b> = <b>telephone</b> <small style="color:#7A6652">(FOH-nee)</small><br>✍️ <b>Saina</b> = <b>to sign</b> <small style="color:#7A6652">(SAH-ee-na — from English "sign"!)</small><br><br>Next time you sign a document, remember: in TjiKalanga that is called <b>Saina</b>!`,
+      `<div class="lang-tag">TjiKalanga · Daily Life — Home &amp; Kitchen</div>TjiKalanga words for your home! 🏡<br><br>🏠 <b>Ng'umba</b> = <b>house / hut</b> <small style="color:#7A6652">(ng-OOM-ba)</small><br>🍽️ <b>Ndilo</b> = <b>dish / plate</b> <small style="color:#7A6652">(nn-DEE-lo)</small><br>🫕 <b>Hali</b> = <b>cooking pot</b> <small style="color:#7A6652">(HAH-lee)</small><br>🧼 <b>Sipa</b> = <b>soap</b> <small style="color:#7A6652">(SEE-pa)</small><br>🍶 <b>Butili</b> = <b>bottle</b> <small style="color:#7A6652">(boo-TEE-lee)</small><br>📦 <b>Bhokisi</b> = <b>box / bag / coffin</b> <small style="color:#7A6652">(bho-KEE-see)</small><br><br>Look around your home — can you name 3 objects in TjiKalanga?`,
+      `<div class="lang-tag">TjiKalanga · Daily Life — Work &amp; Money</div>TjiKalanga work and money words! 💰<br><br>💼 <b>Shingo</b> = <b>work / employment</b> <small style="color:#7A6652">(SHEEN-go)</small><br>💰 <b>Ma ri</b> = <b>money</b> <small style="color:#7A6652">(mah-REE)</small><br>🛒 <b>Tenga</b> = <b>to buy</b> <small style="color:#7A6652">(TEN-ga)</small><br>🏷️ <b>Tengesa</b> = <b>to sell</b> <small style="color:#7A6652">(ten-GEH-sa)</small><br>💳 <b>Lipa</b> = <b>to pay a debt</b> <small style="color:#7A6652">(LEE-pa)</small><br>🤲 <b>Kumbila</b> = <b>to beg / ask for / request</b> <small style="color:#7A6652">(koom-BEE-la)</small><br><br>If you go to a shop: you <b>Tenga</b> (buy) and the shopkeeper <b>Tengesa</b> (sells). Simple!`
+    ],
+    kgalagadi: [
+      `<div class="lang-tag">Shekgalagari · Daily Life — Home</div>Shekgalagari home words! 🏠<br><br>🏠 <b>Itu</b> = <b>house</b> <small style="color:#7A6652">(EE-too) — Setswana: ntlo</small><br>🏫 <b>Shekole</b> = <b>school</b> <small style="color:#7A6652">(sheh-KOH-leh) — Setswana: sekolo</small><br>💧 <b>Maze</b> = <b>water</b> <small style="color:#7A6652">(MAH-zeh) — Setswana: metsi</small><br>🥛 <b>Moriso</b> = <b>milk</b> <small style="color:#7A6652">(mo-REE-so) — Setswana: mashi</small><br>🍳 <b>Relaa</b> = <b>to cook</b> <small style="color:#7A6652">(reh-LAH) — Setswana: apaya</small><br><br>Which of these do you use in your home every day?`,
+      `<div class="lang-tag">Shekgalagari · Daily Life — People</div>Shekgalagari people words! 🏠<br><br>🧑 <b>Moqho</b> = <b>person</b> <small style="color:#7A6652">(MO-qo) — Setswana: motho</small><br>👶 <b>Motjhwana</b> = <b>child / kid</b> <small style="color:#7A6652">(mo-TCHWAH-na) — Setswana: ngwana</small><br>👦 <b>Mantjsana</b> = <b>boy</b> <small style="color:#7A6652">(man-TCHA-na) — Setswana: mosimane</small><br>👧 <b>Mosezana</b> = <b>girl</b> <small style="color:#7A6652">(mo-seh-ZAH-na) — Setswana: mosetsana</small><br>👫 <b>Kgalariyame</b> = <b>brother / sister</b> <small style="color:#7A6652">(ka-la-REE-ya-meh)</small><br><br>Point to someone near you — what is their Shekgalagari word?`,
+      `<div class="lang-tag">Shekgalagari · Daily Life — Actions</div>Everyday Shekgalagari actions! 🏠<br><br>⬇️ <b>Tla / Nto</b> = <b>come!</b> <small style="color:#7A6652">(TLA / nn-TOH) — used to call someone</small><br>🪑 <b>Rula</b> = <b>sit down</b> <small style="color:#7A6652">(ROO-la)</small><br>🧍 <b>Metshe</b> = <b>stand up</b> <small style="color:#7A6652">(MET-sheh)</small><br>👂 <b>Uzwa</b> = <b>hear / listen</b> <small style="color:#7A6652">(OO-zwa)</small><br>🆘 <b>Ntjhusa</b> = <b>help me</b> <small style="color:#7A6652">(nn-TCHOO-sa)</small><br><br>These 5 words will help you communicate in any situation. Practice saying them all!`,
+      `<div class="lang-tag">Shekgalagari · Daily Life — Cattle Culture</div>An important part of Shekgalagari life! 🏜️<br><br>The Kgalagadi people have a rich cattle-herding tradition. These words reflect that culture:<br><br>🐄 <b>Rimho / Rikgomo</b> = <b>cattle / cows</b> <small style="color:#7A6652">(REE-mo / ree-KGO-mo) — Setswana: dikgomo</small><br>🥛 <b>Moriso</b> = <b>milk</b> <small style="color:#7A6652">(mo-REE-so) — from the cattle</small><br>🌿 <b>Tshimo</b> = <b>field / garden</b> <small style="color:#7A6652">(TSHEE-mo) — shared with Setswana!</small><br>☀️ <b>Leatjsi</b> = <b>sun / day</b> <small style="color:#7A6652">(leh-AT-see) — the sun guides the cattle herder</small><br><br>The Kgalagadi people live in one of the driest places on earth — the Kalahari. Every drop of <b>Maze</b> (water) matters! 🌵`
+    ],
+    mbukushu: [
+      `<div class="lang-tag">Thimbukushu · Daily Life — People & Places</div>Thimbukushu words for daily life! 🏠<br><br>👨‍👩‍👧 <b>Hanu</b> = <b>people</b> <small style="color:#7A6652">(HAH-noo) — the people around you every day</small><br>🤝 <b>Mushere</b> = <b>friend</b> <small style="color:#7A6652">(moo-SHEH-reh) — someone close to you</small><br>🏫 <b>Kushure</b> = <b>school</b> <small style="color:#7A6652">(koo-SHOO-reh) — "kuna kukara maranga kushure" = running late to school</small><br>🏠 <b>Kudimbo</b> = <b>home</b> <small style="color:#7A6652">(koo-DIM-bo) — "Wiye kudimbo" = Come home</small><br><br>Practice: say <b>"Wiye kudimbo"</b> — can you use it today to call someone home?`,
+      `<div class="lang-tag">Thimbukushu · Daily Life — Time & Weather</div>Thimbukushu time and weather words! 🏠<br><br>📅 <b>Dyaro</b> = <b>today</b> <small style="color:#7A6652">(DYA-ro) — "Dyaro ne mepo" = Today it's cold</small><br>☀️ <b>Diyuwa</b> = <b>sun</b> <small style="color:#7A6652">(dee-YOO-wa) — the sun you see every morning</small><br>⏰ <b>Maranga</b> = <b>late</b> <small style="color:#7A6652">(ma-RAN-ga) — "Kuna kukara maranga" = Running late</small><br>❄️ <b>Mepo</b> = <b>cold</b> <small style="color:#7A6652">(MEH-po) — "Dyaro ne mepo" = Today it's cold</small><br><br>Is it <b>Mepo</b> (cold) or warm where you are today? Say it in Thimbukushu!`,
+      `<div class="lang-tag">Thimbukushu · Daily Life — Food & Things</div>Thimbukushu everyday object words! 🏠<br><br>🍽️ <b>Yidya</b> = <b>food</b> <small style="color:#7A6652">(YEE-dya) — "Ghahaka yidya" = He/she likes food</small><br>🦟 <b>Kamwe</b> = <b>mosquito</b> <small style="color:#7A6652">(KAM-weh) — "Kamwe ka ni humu" = A mosquito bit me</small><br>👅 <b>Rudimi</b> = <b>tongue</b> <small style="color:#7A6652">(roo-DEE-mee) — used to speak your language!</small><br>📦 <b>Yiwana/Yinu</b> = <b>belongings / things</b> <small style="color:#7A6652">(yee-WAH-na) — your possessions</small><br><br>Your <b>Rudimi</b> (tongue) is your greatest tool — use it to speak Thimbukushu!`,
+      `<div class="lang-tag">Thimbukushu · Daily Life — Language & Learning</div>Thimbukushu words about language itself! 🌍<br><br>📖 <b>Kutoya</b> = <b>reading</b> <small style="color:#7A6652">(koo-TOY-a) — what you are doing RIGHT NOW</small><br>🗣️ <b>Kughamba</b> = <b>to speak</b> <small style="color:#7A6652">(koo-GHAM-ba) — "Ame kughamba Thimbukushu" = I speak Thimbukushu</small><br>💡 <b>Dimuka</b> = <b>to know / understand</b> <small style="color:#7A6652">(dee-MOO-ka)</small><br>📚 <b>Mandimi</b> = <b>languages</b> <small style="color:#7A6652">(man-DEE-mee) — "Hanu hahaka mandimi" = People like languages</small><br><br>You are doing all four of these things today — reading, speaking, knowing, loving languages! 🌟`
+    ],
+    english: [
+      `<div class="lang-tag">English · Daily Life — Places</div>English words for places you visit! 🏠<br><br>🏬 <b>Shop / Store</b> = where you buy food and goods<br><small style="color:#7A6652">You will see signs: "OPEN", "CLOSED", "PRICE", "SALE"</small><br>🚌 <b>Bus / Bus stop</b> = public transport<br><small style="color:#7A6652">You will see signs: "DEPARTURE", "ARRIVAL", "TICKET"</small><br>🏥 <b>Clinic / Hospital</b> = where doctors help you<br><small style="color:#7A6652">You will see: "RECEPTION", "QUEUE HERE", "EMERGENCY"</small><br>🏫 <b>School</b> = where learning happens<br>⛪ <b>Church</b> = place of worship<br><br>Which of these places do you visit most in your week?`,
+      `<div class="lang-tag">English · Daily Life — Signs & Documents</div>English words you see on signs! 🏠<br><br>📄 <b>Form</b> = a document to fill in with your information<br>✍️ <b>Sign</b> = to write your name (signature) on a document<br>🧾 <b>Receipt</b> = paper proof that you paid<br>🧍 <b>Queue</b> = a line of people waiting their turn<br>🆔 <b>ID / Identity</b> = your identification document<br>📋 <b>Application</b> = a form you fill to apply for something<br><br>These words appear in every office, bank and clinic. Knowing them means you can handle any official situation! 💪`,
+      `<div class="lang-tag">English · Daily Life — Time words</div>English time words! ⏰<br><br>☀️ <b>Morning</b> = early part of the day (6am–12pm)<br>🌤️ <b>Afternoon</b> = after midday (12pm–6pm)<br>🌙 <b>Evening / Night</b> = after dark<br>📅 <b>Today</b> = this current day<br>📅 <b>Tomorrow</b> = the next day<br>📅 <b>Yesterday</b> = the day before today<br>📅 <b>Week</b> = 7 days / <b>Month</b> = about 30 days<br><br>Practice: say what time of day it is RIGHT NOW in English! 🌟`,
+      `<div class="lang-tag">English · Daily Life — Numbers in real life</div>English numbers in daily use! 🔢<br><br>In English, numbers appear everywhere:<br><br>📞 <b>Phone number</b> — you dial numbers to call<br>💰 <b>Price</b> — numbers tell you how much things cost<br>📅 <b>Date</b> — numbers tell you the day, month and year<br>🏠 <b>Address</b> — numbers tell you where a building is<br>⏰ <b>Time</b> — numbers tell you what hour it is<br><br>Example: "The price is <b>twenty-five pula</b>."<br>Can you write 25 in English words? <b>Twenty-five</b>! 🎉<br>You already know this — you learned it in the numbers lesson!`
+    ]
+  },
+
+  // ─── WRITING ───
+  writing: {
+    setswana: [
+      `<div class="lang-tag">Setswana · Writing 1 — Your Name</div>Re ithute go kwala Setswana! ✏️<br><br>Go kwala = to write. You are learning to <b>kwala</b> today!<br><br>Steps:<br>1. Kwala tlhaka nngwe le nngwe — one letter at a time<br>2. Kgaoganya mafoko — leave spaces between words<br>3. Simolola ka tlhaka e kgolo — capital letter at the start<br><br>Leka go kwala: <b>LEINA LA ME KE ___</b><br>= <i>"My name is ___"</i> — fill in YOUR name! 🌟`,
+      `<div class="lang-tag">Setswana · Writing 2 — Short words</div>Sentle! 🌟 Kwala mafoko a makubu a:<br><br>✍️ <b>E - E</b> = yes ✅<br>✍️ <b>N - Y - A - A</b> = no ❌<br>✍️ <b>R - R - A</b> = sir / father 👨<br>✍️ <b>M - M - A</b> = ma'am / mother 👩<br>✍️ <b>P - U - L - A</b> = rain / money / cheers 🌧️<br><br>Kwala lefoko le le tshwanang: P-U-L-A<br>Fa o kwala PULA, o kwala lefoko la botlhokwa jo bogolo mo Botswana!`,
+      `<div class="lang-tag">Setswana · Writing 3 — Medium words</div>Sentle thata! 🎉 Kwala mafoko a a manana a:<br><br>✍️ <b>N - T - L - O</b> = house 🏠 (4 letters)<br>✍️ <b>B - A - N - A</b> = children 👶 (4 letters)<br>✍️ <b>D - U - M - E - L - A</b> = hello 👋 (6 letters)<br>✍️ <b>S - E - N - T - L - E</b> = well / good 🌟 (6 letters)<br><br>Bala tlhaka nngwe le nngwe fa o e kwala: D… U… M… E… L… A = DUMELA!<br>That word alone will open every door in Botswana! 🇧🇼`,
+      `<div class="lang-tag">Setswana · Writing 4 — Longer words</div>O a kgona! 🌟 Mafoko a magolo go kwala:<br><br>✍️ <b>TSAMAYA</b> = go well / travel 🚶 (7 letters: T-S-A-M-A-Y-A)<br>✍️ <b>GABORONE</b> = capital city 🏙️ (8 letters: G-A-B-O-R-O-N-E)<br>✍️ <b>LEBENKELE</b> = shop 🏬 (9 letters: L-E-B-E-N-K-E-L-E)<br>✍️ <b>BOTSWANA</b> = our country 🇧🇼 (8 letters: B-O-T-S-W-A-N-A)<br><br>Kwala lefoko le lengwe. Bala ditlhaka fa o di kwala.<br>BOTSWANA — o kwala leina la naga ya gago! 🌍`
+    ],
+    kalanga: [
+      `<div class="lang-tag">TjiKalanga · Writing 1 — Your Name</div>Let's start writing in TjiKalanga! ✏️<br><br>In TjiKalanga, <b>Kwala</b> = to write. You are now learning to <b>Kwala</b>!<br><br>Steps:<br>1. Write one letter at a time — go slowly<br>2. Leave a space between words<br>3. Capital letter at the start<br><br>Now write: <b>ZINA RANGU NDI ___</b><br>= <i>"My name is ___"</i><br><br>Write YOUR name in the blank. Take your time — <b>Ndaboka</b> (thank you) for trying! 🌟`,
+      `<div class="lang-tag">TjiKalanga · Writing 2 — Short words</div>Well done! 🌟 Write these short TjiKalanga words:<br><br>Write each one, then say its meaning out loud:<br><br>✍️ <b>V - U - L - A</b> = water / rain 💧<br>✍️ <b>J - A</b> = to eat 🍽️<br>✍️ <b>E - E</b> = yes ✅<br>✍️ <b>A - A</b> = no ❌<br>✍️ <b>D - A</b> = to love ❤️<br><br>Short words are easiest — start here and build confidence. You are doing <b>Zwavhudi</b> (well done)! 💪`,
+      `<div class="lang-tag">TjiKalanga · Writing 3 — Medium words</div>Excellent! 🎉 Now try these medium-length words:<br><br>✍️ <b>B - A - N - A</b> = children 👶<br>✍️ <b>H - U - N - I</b> = firewood 🪵<br>✍️ <b>Z - I - N - A</b> = name 🏷️<br>✍️ <b>L - E - B - A</b> = to talk 💬<br>✍️ <b>H - O - B - E</b> = fish 🐟<br><br>Write one word at a time. Say the letters as you write them: B… A… N… A…<br>That is how all readers and writers started!`,
+      `<div class="lang-tag">TjiKalanga · Writing 4 — Longer words</div>You are ready for longer words! 🌟<br><br>✍️ <b>S - H - A - N - G - O</b> = country / the world 🌍<br>✍️ <b>N - D - A - B - O - K - A</b> = thank you 🙏<br>✍️ <b>S - H - A - N - G - A - N - O</b> = meeting / gathering 🤝<br>✍️ <b>K - U - M - B - I - L - A</b> = to ask / to request 🙋<br><br>Write one word. Count the letters first, then write slowly.<br>Ndaboka has 7 letters: N-D-A-B-O-K-A. Count them! 🎉`
+    ],
+    kgalagadi: [
+      `<div class="lang-tag">Shekgalagari · Writing 1 — Your Name</div>Let's write in Shekgalagari! ✏️<br><br>To say "My name is ___" in Shekgalagari:<br>👉 <b>"Leina la me ke ___."</b><br><small style="color:#7A6652">(LEH-ee-na la meh keh ___)</small><br><br>Steps:<br>1. Write one letter at a time<br>2. Leave spaces between words<br>3. Capital letter at the start<br><br>Write: <b>LEINA LA ME KE ___</b> — fill in YOUR name!<br>Then say it out loud. That is your first Shekgalagari sentence! 🌟`,
+      `<div class="lang-tag">Shekgalagari · Writing 2 — Short words</div>Well done! 🌟 Write these short Shekgalagari words:<br><br>✍️ <b>I - T - U</b> = house 🏠<br>✍️ <b>T - L - A</b> = come! ⬇️<br>✍️ <b>N - T - O</b> = come! (Shekgalagari form) ⬇️<br>✍️ <b>R - U - L - A</b> = sit down 🪑<br>✍️ <b>U - Z - W - A</b> = hear / listen 👂<br><br>Write one word, say it, and do the action!<br>Write RULA and sit down. Write METSHE and stand up! 😄`,
+      `<div class="lang-tag">Shekgalagari · Writing 3 — Medium words</div>Excellent! 🎉 Try these medium words:<br><br>✍️ <b>M - A - Z - E</b> = water 💧 (4 letters)<br>✍️ <b>M - O - Q - H - O</b> = person 🧑 (5 letters)<br>✍️ <b>M - O - R - I - S - O</b> = milk 🥛 (6 letters)<br>✍️ <b>R - E - L - A - A</b> = to cook 🍳 (5 letters)<br><br>Count the letters first, then write slowly.<br>MAZE has 4 letters: M-A-Z-E. Count them out loud!`,
+      `<div class="lang-tag">Shekgalagari · Writing 4 — Longer words</div>You are ready for longer words! 🌟<br><br>✍️ <b>LEATJSI</b> = sun / day ☀️ (7 letters: L-E-A-T-J-S-I)<br>✍️ <b>HAKEZE</b> = I don't know ❓ (6 letters: H-A-K-E-Z-E)<br>✍️ <b>MORIMO</b> = God 🙏 (6 letters: M-O-R-I-M-O)<br>✍️ <b>SHEKOLE</b> = school 🏫 (7 letters: S-H-E-K-O-L-E)<br><br>Write one word. Count the letters, then write slowly.<br>When you write <b>Shekole</b>, you are writing the word for the place where learning happens — and learning IS happening right now! 🎉`
+    ],
+    mbukushu: [
+      `<div class="lang-tag">Thimbukushu · Writing 1 — Your Name</div>Let's write in Thimbukushu! ✏️<br><br>In Thimbukushu, "my name" is <b>Dina dyange</b>.<br><br>The full sentence to introduce yourself:<br>👉 <b>"Dina dyange ne yame ___."</b><br>= <i>My name is ___.</i> <small style="color:#7A6652">(dee-na DYA-ngeh neh YAH-meh)</small><br><br>Steps:<br>1. Write one letter at a time — slowly<br>2. Leave spaces between words<br>3. Capital letter at the start<br><br>Try writing: <b>DINA DYANGE NE YAME ___</b> — fill in your name!`,
+      `<div class="lang-tag">Thimbukushu · Writing 2 — Short verified words</div>Well done! 🌟 Write these short Thimbukushu words:<br><br>Write each one, then say its meaning out loud:<br><br>✍️ <b>A - M - E</b> = I / me 👤<br>✍️ <b>O - W - E</b> = you 👥<br>✍️ <b>A - Y - E</b> = he / she 🧑<br>✍️ <b>D - Y - A - R - O</b> = today 📅<br>✍️ <b>W - I - Y - E</b> = come! 🏠<br><br>Say each letter as you write: A… M… E = me!<br>These short words are the building blocks of Thimbukushu! 💪`,
+      `<div class="lang-tag">Thimbukushu · Writing 3 — Medium words</div>Excellent! 🎉 Try these medium words from the dictionary:<br><br>✍️ <b>H - A - N - U</b> = people 👨‍👩‍👧<br>✍️ <b>Y - I - D - Y - A</b> = food 🍽️<br>✍️ <b>T - J - I - R - E</b> = run! 🏃<br>✍️ <b>G - H - U - V - A</b> = lazy 😴<br><br>Write one word at a time. Count the letters first!<br>HANU has 4 letters: H-A-N-U.<br>YIDYA has 5 letters: Y-I-D-Y-A. Count them! 🌟`,
+      `<div class="lang-tag">Thimbukushu · Writing 4 — Longer words</div>You are ready for longer Thimbukushu words! 🌟<br><br>✍️ <b>MUSHERE</b> = friend 🤝 (7 letters: M-U-S-H-E-R-E)<br>✍️ <b>THIRARO</b> = peace ☮️ (7 letters: T-H-I-R-A-R-O)<br>✍️ <b>KUYENDA</b> = to walk 🚶 (7 letters: K-U-Y-E-N-D-A)<br>✍️ <b>KUTOYA</b> = reading 📖 (6 letters: K-U-T-O-Y-A)<br><br>Write one word. Read it back. Say its meaning.<br>In Thimbukushu: <b>Thiraro</b> = Peace. A beautiful word to end with! 🌍`
+    ],
+    english: [
+      `<div class="lang-tag">English · Writing 1 — Your Name</div>Let's start writing in English! ✏️<br><br>In English, "my name" is always two words: <b>MY NAME</b>.<br><br>The full sentence:<br>👉 <b>"MY NAME IS ___."</b><br><small style="color:#7A6652">(my = belonging to me · name = what people call you · is = ke)</small><br><br>Writing rules in English:<br>1. Write one letter at a time — go slowly<br>2. Leave a space between every word<br>3. Start with a CAPITAL letter<br>4. End a sentence with a full stop <b>.</b><br><br>Try writing: <b>MY NAME IS ___</b> — fill in your name!`,
+      `<div class="lang-tag">English · Writing 2 — Short English words</div>Well done! 🌟 Write these short English words:<br><br>✍️ <b>Y - E - S</b> = yes ✅<br>✍️ <b>N - O</b> = no ❌<br>✍️ <b>H - I</b> = hi (informal hello) 👋<br>✍️ <b>O - K</b> = okay / agreed ✅<br>✍️ <b>G - O</b> = go / move 🚶<br><br>Write each word and say it out loud.<br>Y… E… S = YES! That is how you agree in English. 🌟`,
+      `<div class="lang-tag">English · Writing 3 — Medium English words</div>Excellent! 🎉 Try these medium words:<br><br>✍️ <b>W - A - T - E - R</b> = water 💧 (5 letters)<br>✍️ <b>S - C - H - O - O - L</b> = school 🏫 (6 letters)<br>✍️ <b>M - O - N - E - Y</b> = money 💰 (5 letters)<br>✍️ <b>H - E - L - L - O</b> = hello 👋 (5 letters)<br>✍️ <b>T - H - A - N - K - S</b> = thanks 🙏 (6 letters)<br><br>Count the letters before you write.<br>WATER = W-A-T-E-R = 5 letters. Count them out loud! 💪`,
+      `<div class="lang-tag">English · Writing 4 — Useful longer words</div>You are ready for longer words! 🌟<br><br>✍️ <b>ENGLISH</b> = the language you are learning 📖 (7 letters: E-N-G-L-I-S-H)<br>✍️ <b>HOSPITAL</b> = where doctors work 🏥 (8 letters: H-O-S-P-I-T-A-L)<br>✍️ <b>RECEIPT</b> = proof of payment 🧾 (7 letters: R-E-C-E-I-P-T)<br>✍️ <b>BOTSWANA</b> = our beautiful country 🇧🇼 (8 letters: B-O-T-S-W-A-N-A)<br><br>Write one word. Say each letter as you write it.<br>You are writing ENGLISH words now. That is something to be proud of! 🎉`
+    ]
+  },
+
+  // ─── NAME LESSON (special) ───
+  name: {
+    setswana: [`<div class="lang-tag">Setswana · Your Name</div>Re ithute go kwala leina la gago! ✏️<br><br>Mo Setswaneng, "my name" ke <b>Leina la me</b>.<br><br>Sentence ya go itshupa:<br>👉 <b>"Leina la me ke ___."</b> = My name is ___<br><small style="color:#7A6652">(LEH-ee-na la meh keh ___)</small><br><br>Go botsa leina:<br>👉 <b>"Leina la gago ke mang?"</b> = What is your name?<br><small style="color:#7A6652">(la GAH-go keh MANG)</small><br><br>Kwala leina la gago tlhaka nngwe le nngwe:<br><b>K - E - A - B - E - T - S - W - E</b><br><br>Mme o bue: <b>"Leina la me ke ___"</b> — that is YOU! 🌟`],
+    kalanga: [`<div class="lang-tag">TjiKalanga · Your Name</div>Let's write your name — in TjiKalanga! ✏️<br><br>In TjiKalanga, your name is called your <b>Zina</b>.<br><br>The TjiKalanga question for "What is your name?" is:<br>👉 <b>"Zina lilo ndiani?"</b> <small style="color:#7A6652">(ZEE-na LEE-lo nn-dee-AH-nee)</small><br><br>Now write your name, one letter at a time. For example:<br><b>T - H - A - B - O</b><br><br>After you write it, try saying: <b>"Zina rangu ndi ___"</b> = "My name is ___" 🌟`],
+    kgalagadi: [`<div class="lang-tag">Shekgalagari · Your Name</div>Let's write your name in Shekgalagari! ✏️<br><br>In Shekgalagari, "my name" is <b>Leina la me</b> — very similar to Setswana!<br><br>The full sentence:<br>👉 <b>"Leina la me ke ___."</b><br><small style="color:#7A6652">(LEH-ee-na la meh keh ___)</small><br><br>To ask someone's name:<br>👉 <b>"Leina la gago ke mang?"</b> = What is your name?<br><small style="color:#7A6652">(la GAH-go keh MANG)</small><br><br>Write your name one letter at a time. Example:<br><b>T - S - H - E - P - O</b><br><br>Then say: <b>"Leina la me ke ___"</b> = My name is ___! 🌟`],
+    mbukushu: [`<div class="lang-tag">Thimbukushu · Your Name</div>Let's write your name in Thimbukushu! ✏️<br><br>In Thimbukushu, "my name" is <b>Dina dyange</b>.<br><br>To say "My name is ___" you say:<br>👉 <b>"Dina dyange ne yame ___"</b><br><small style="color:#7A6652">(dee-na DYA-ngeh neh YAH-meh ___)</small><br><br>This is a REAL sentence from the dictionary, contributed by a Thimbukushu speaker.<br><br>Write your name one letter at a time. For example:<br><b>O - N - K - A - B - I - L - E</b><br><br>Then read it back: <b>"Dina dyange ne yame ___"</b> = My name is ___! 🌟`],
+    english: [`<div class="lang-tag">English · Your Name</div>Let's write your name in English! ✏️<br><br>In English, to introduce yourself you say:<br>👉 <b>"My name is ___."</b><br><small style="color:#7A6652">(MY = belonging to me · NAME = what people call you · IS = ke)</small><br><br>To ask someone's name:<br>👉 <b>"What is your name?"</b><br><small style="color:#7A6652">(WHAT = eng · YOUR = ya gago · NAME = leina)</small><br><br>Write YOUR name one letter at a time. Example:<br><b>T - H - A - B - O</b><br><br>Then write the full sentence:<br><b>MY NAME IS ___</b><br><br>Say it out loud. That is real English! 🌟`]
+  }
+};
+
+// ═══════════════════════════════════════════
+// SMART RESPONSE ENGINE
+// ═══════════════════════════════════════════
+const lessonCounters = {};
+
+function getTutorResponse(input) {
+  const L = LANGS[currentLang];
+  const txt = input.toLowerCase();
+
+  // Greeting / name response
+  if (txt.match(/^(hi|hello|dumela|salibonani|mbukuuru|hey|yo)\b/) ||
+      txt.match(/(my name is|ke nna|leina la me|zita rangu|ndinonzi)/i)) {
+    const name = input.replace(/my name is|ke nna|leina la me ke|zita rangu ndi|ndinonzi/gi,'').trim();
+    if (name.length > 1) {
+      return `${L.good} 😊 ${name.charAt(0).toUpperCase()+name.slice(1)}, o amogetswe! Welcome!<br><br>Ke itumetse go go ithuta — I am happy to learn with you. 🌟<br><br>Kgetha topic e o batlang go simolola ka yona. Pick a topic from the buttons above — letters, numbers, or words!`;
+    }
+    return `${L.good} 😊 O amogetswe! Welcome!<br><br>Ke itumetse go go ithuta. I am happy to learn with you. 🌟<br><br>Leina la gago ke mang? What is your name?`;
+  }
+
+  // Alphabet / letters
+  if (txt.match(/alpha|letter|tlhaka|tsamba|abc|alfabet|huruf/)) {
+    return getLesson('alphabet');
+  }
+
+  // Numbers
+  if (txt.match(/number|namba|nhamba|count|bala|verenga|nomoro|digit|1|2|3|ten|lesome|gumi|likumi/)) {
+    return getLesson('numbers');
+  }
+
+  // Name writing
+  if (txt.match(/name|leina|zita|jina|ngwala.*leina|nyora.*zita|write.*name/)) {
+    return getLesson('name');
+  }
+
+  // Sentences
+  if (txt.match(/sentence|mafoko|mitsara|paragraph|read|bala|verenga|kuverenga/)) {
+    return getLesson('sentences');
+  }
+
+  // Daily life
+  if (txt.match(/daily|shop|bus|hospital|lebenkele|bese|sepetlele|chipatara|sitolo|work|basa/)) {
+    return getLesson('daily');
+  }
+
+  // Writing
+  if (txt.match(/writ|kwala|nyora|ngwala|pen|pencil|pratise|practice/)) {
+    return getLesson('writing');
+  }
+
+  // Words
+  if (txt.match(/word|mafoko|mazwi|vocab|meaning|bolela|kutaura/)) {
+    return getLesson('words');
+  }
+
+  // Thank you
+  if (txt.match(/thank|ke a lebog|ndaboka|nda livhuwa|tanki|siyabonga/)) {
+    return `${L.good} 😊 Thank you too!<br><br>You are doing great work! 💪<br>In TjiKalanga, "thank you" is <b>Ndaboka</b> <small style="color:#b5a898">(nda-BOH-ka)</small><br><br>Shall we continue learning?`;
+  }
+
+  // Good / yes
+  if (txt.match(/^(yes|ya|yep|ok|okay|sure|correct|right|good|sentle|zwavhudi|nawa|sentile|eya|ee)\b/)) {
+    return `${L.great} 🎉<br><br>${L.keep} Let us keep going!<br><br>Pick a topic above to continue — or just tell me what you want to learn next!`;
+  }
+
+  // Help
+  if (txt.match(/help|thusa|batsela|ndibatsire/)) {
+    return `Ke tla go thusa — I will help you! 😊<br><br>Here is what we can learn together:<br>🔤 <b>Letters</b> — the alphabet<br>🔢 <b>Numbers</b> — counting 1–10<br>💬 <b>Words</b> — important words<br>📄 <b>Sentences</b> — reading phrases<br>🏠 <b>Daily Life</b> — words you use every day<br>✏️ <b>Writing</b> — how to write<br><br>Which one do you want to start with?`;
+  }
+
+  // Topic: letters/alphabet (pill click)
+  if (txt.includes('letters') || txt.includes('sounds')) return getLesson('alphabet');
+  if (txt.includes('words') && !txt.includes('everyday')) return getLesson('words');
+  if (txt.includes('sentence')) return getLesson('sentences');
+  if (txt.includes('numbers') || txt.includes('counting')) return getLesson('numbers');
+  if (txt.includes('daily') || txt.includes('everyday life')) return getLesson('daily');
+  if (txt.includes('writing') || txt.includes('practice')) return getLesson('writing');
+
+  // Default encouragement with topic menu
+  return `${L.good} 😊<br><br>Ke utlwa — I hear you. Let us keep learning together! 🌟<br><br>What would you like to do next?<br>🔤 <b>Letters</b> &nbsp;|&nbsp; 🔢 <b>Numbers</b> &nbsp;|&nbsp; 💬 <b>Words</b> &nbsp;|&nbsp; ✏️ <b>Writing</b><br><br>Just press a button above or type what you want to learn!`;
+}
+
+function getLesson(topic) {
+  const key = currentLang + '_' + topic;
+  const pool = (LESSONS[topic] || {})[currentLang] || LESSONS[topic]?.english || [];
+  if (!pool.length) return LANGS[currentLang].good + ' Let us keep learning! Pick a topic above.';
+  const idx = (lessonCounters[key] || 0) % pool.length;
+  lessonCounters[key] = idx + 1;
+  return pool[idx];
+}
+
+// ═══════════════════════════════════════════
+// UI LOGIC
+// ═══════════════════════════════════════════
+let currentLang = 'setswana';
+let currentTopic = 'letters';
+
+function init() { updateWelcome(); renderPrompts(); renderFirstMsg(); }
+
+function updateWelcome() {
+  const L = LANGS[currentLang];
+  document.getElementById('langTag').textContent = L.tag;
+  document.getElementById('welcomeTitle').textContent = L.greeting;
+  document.getElementById('welcomeDesc').textContent = L.desc;
+}
+
+function renderPrompts() {
+  const container = document.getElementById('quickPrompts');
+  container.innerHTML = '';
+  LANGS[currentLang].prompts.forEach(([msg, label]) => {
+    const b = document.createElement('div');
+    b.className = 'qp'; b.textContent = label;
+    b.onclick = () => quickSend(msg);
+    container.appendChild(b);
+  });
+}
+
+function renderFirstMsg() {
+  document.getElementById('chatBox').innerHTML = '';
+  appendMsg('ai', LANGS[currentLang].firstMsg);
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + lang).classList.add('active');
+  updateWelcome(); renderPrompts(); renderFirstMsg();
+}
+
+function setTopic(el, topic) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  currentTopic = topic;
+  quickSend(topic);
+}
+
+function quickSend(text) {
+  document.getElementById('userInput').value = text;
+  sendMessage();
+}
+
+function sendMessage() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  appendMsg('user', text);
+
+  const tid = showTyping();
+  // Simulate a natural typing delay (600–1100ms)
+  setTimeout(() => {
+    removeTyping(tid);
+    const reply = getTutorResponse(text);
+    appendMsg('ai', reply);
+  }, 600 + Math.random() * 500);
+}
+
+function appendMsg(role, html) {
+  const box = document.getElementById('chatBox');
+  const wrap = document.createElement('div');
+  wrap.className = `message ${role}`;
+  const av = document.createElement('div');
+  av.className = `avatar ${role === 'ai' ? 'ai' : 'user-av'}`;
+  av.textContent = role === 'ai' ? 'T' : 'Me';
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
+  bub.innerHTML = html.replace(/\n/g, '<br>');
+  wrap.appendChild(av); wrap.appendChild(bub);
+  box.appendChild(wrap);
+  box.scrollTop = box.scrollHeight;
+}
+
+function showTyping() {
+  const box = document.getElementById('chatBox');
+  const d = document.createElement('div');
+  d.className = 'message ai';
+  const id = 'ty-' + Date.now(); d.id = id;
+  d.innerHTML = `<div class="avatar ai">T</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) { const e = document.getElementById(id); if (e) e.remove(); }
+
+init();
+</script>
+</body>
+</html>
